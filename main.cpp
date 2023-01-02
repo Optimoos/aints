@@ -63,9 +63,7 @@ int main(void)
 
         for (auto entity: antview){
             auto &anAnt = antview.get<aints>(entity);
-            int64_t newX = anAnt.getX() + ((std::rand() % 3) -1);
-            int64_t newY = anAnt.getY() + ((std::rand() % 3) -1);
-            anAnt.updateLocation(newX, newY);
+            anAnt.tick();
             DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
         }
 

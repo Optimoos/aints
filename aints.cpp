@@ -48,3 +48,13 @@ aints::~aints()
 {
 
 };
+
+void aints::move() {
+    int64_t newX = this->getX() + ((std::rand() % 3) -1);
+    int64_t newY = this->getY() + ((std::rand() % 3) -1);
+    this->updateLocation(newX, newY);
+}
+
+void aints::tick() {
+    this->move();
+}

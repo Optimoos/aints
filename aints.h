@@ -21,6 +21,9 @@ public:
     aints();
     ~aints();
 
+    void move();
+    void tick();
+
 private:
     int id = 0;
     int64_t locX = 0;
