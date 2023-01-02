@@ -8,6 +8,22 @@
 #include <cstdint>
 #include <vector>
 
+class neuron
+{
+public:
+private:
+protected:
+    float threshold = 0.0f;
+};
+
+class move_neuron: public neuron
+{
+public:
+    move_neuron();
+    void tick(float threshold, int64_t* x, int64_t* y);
+private:
+};
+
 class aints
 {
 public:
@@ -21,13 +37,16 @@ public:
     aints();
     ~aints();
 
-    void move();
+
     void tick();
 
 private:
     int id = 0;
     int64_t locX = 0;
     int64_t locY = 0;
+
+    //move_neuron* mn = new move_neuron;
+    move_neuron mn;
 };
 
 #endif //AIANTS_AINTS_H
