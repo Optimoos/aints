@@ -54,7 +54,6 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
 
         if (IsKeyDown(KEY_RIGHT)) { if ( (camera_x + screenWidth) < world.WORLD_X ) camera_x += 1; }
         if (IsKeyDown(KEY_LEFT)) { if ( camera_x > 0 ) camera_x -= 1; }
@@ -143,13 +142,12 @@ int main(void)
         for (auto entity: antview){
             auto &anAnt = antview.get<aints>(entity);
             anAnt.tick();
-            DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
+            // No need to draw if the ant is not on camera
+            if ((camera_x < anAnt.getX() < (camera_x + screenWidth)) &&
+            (camera_y < anAnt.getY() < (camera_y + screenHeight))) {
+                DrawPixel(anAnt.getX() - camera_x, anAnt.getY() - camera_y, BLACK);
+            }
         }
-
-        //DrawPixel(ant1.getX(), ant1.getY(), BLACK );
-        //int64_t newAntX = ant1.getX() - 1;
-        //ant1.updateLocation(newAntX, ant1.getY());
-
 
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
