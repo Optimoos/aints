@@ -8,9 +8,11 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 add_subdirectory(lib/raylib lib/raylib/bin)
 set(BUILD_RAYGUI_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build raygui examples
 add_subdirectory(lib/raygui/projects/CMake)
+set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE)
+add_subdirectory(lib/FastNoise2)
 set(SOURCES main.cpp)
 add_executable(aiants main.cpp aints.cpp aints.h)
 
 #add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} raylib raygui EnTT::EnTT)
+target_link_libraries(${PROJECT_NAME} raylib raygui EnTT::EnTT FastNoise)
 target_include_directories(${PROJECT_NAME} PRIVATE include/)

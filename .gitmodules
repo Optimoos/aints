@@ -7,3 +7,6 @@
 [submodule "lib/raygui"]
 	path = lib/raygui
 	url = https://github.com/raysan5/raygui
+[submodule "lib/FastNoise2"]
+	path = lib/FastNoise2
+	url = https://github.com/Auburn/FastNoise2

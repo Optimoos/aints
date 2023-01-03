@@ -5,6 +5,7 @@
 #include "aints.h"
 #include <entt/entt.hpp>
 #include <iostream>
+#include "FastNoise/FastNoise.h"
 
 
 int aints::setId(int newId)
@@ -46,8 +47,7 @@ aints::aints()
 
 aints::~aints()
 {
-    // FIXME: It feels like the mn should be cleaned up, but this throws an error
-    //delete this->mn;
+
 };
 
 void move_neuron::tick(float tick_threshold, int64_t* x, int64_t* y) {
@@ -67,4 +67,48 @@ void aints::tick() {
 
 move_neuron::move_neuron() {
     this->threshold = 0.7f;
+}
+
+uint32_t world::get_world_position(uint32_t pos){
+    return worldspace.at(pos);
+}
+
+world::world()
+{
+    worldspace.resize(16777216);
+
+    // Create an array of floats to store the noise output in
+    //std::vector<float> noiseOutput(8192*2048);
+    noise_output.resize(1600*900);
+
+    // Generate an 8192 * 2048 area of noise
+
+    FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "CQA=" );
+
+    fnGenerator->GenUniformGrid2D(noise_output.data(), 0, 0, 1600, 900, 0.02f, 1337);
+
+    for (uint32_t index = 0; index < (1600*900); index++) {
+        noise_output.at(index) = (noise_output.at(index) + 1) * 0.5;
+        // Set top 200px to sky
+//        if (index < (1600*5)) {
+//            worldspace.at(index) = 0;
+//        } else {
+            if (noise_output.at(index) < 0.3f ) {
+                worldspace.at(index) = BLOCK_STONE;
+            } else if ((noise_output.at(index) >= 0.3f) && (noise_output.at(index) < 0.7f)) {
+                worldspace.at(index) = BLOCK_DIRT;
+            } else if ((noise_output.at(index) >= 0.7f) && (noise_output.at(index) < 0.8f)) {
+                worldspace.at(index) = BLOCK_SAND;
+            } else {
+                worldspace.at(index) = BLOCK_UNDERGROUND;
+            }
+//        }
+
+    }
+
+}
+
+world::~world()
+{
+
 }

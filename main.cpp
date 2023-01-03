@@ -18,6 +18,8 @@ int main(void)
     const int screenWidth = 1600;
     const int screenHeight = 900;
 
+    world world;
+
     entt::registry registry;
 
 
@@ -58,6 +60,45 @@ int main(void)
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
+
+        for (int ypos = 0; ypos < 900; ypos++) {
+            for (int xpos = 0; xpos < 1600; xpos++) {
+
+                uint32_t calculated_position = xpos+(ypos*1600);
+
+                switch (world.get_world_position(calculated_position)){
+                    case 0:
+                        DrawPixel(xpos, ypos, SKYBLUE);
+                        break;
+                    case 1:
+                        DrawPixel(xpos, ypos, BROWN);
+                        break;
+                    case 2:
+                        DrawPixel(xpos, ypos, GREEN);
+                        break;
+                    case 3:
+                        DrawPixel(xpos, ypos, RED);
+                        break;
+                    case 4:
+                        DrawPixel(xpos, ypos, DARKGRAY);
+                        break;
+                    case 5:
+                        DrawPixel(xpos, ypos, BLUE);
+                        break;
+                    case 6:
+                        DrawPixel(xpos, ypos, YELLOW);
+                        break;
+                    case 7:
+                        DrawPixel(xpos, ypos, DARKBROWN);
+                        break;
+                    case 8:
+                        DrawPixel(xpos, ypos, PURPLE);
+                        break;
+
+                }
+
+            }
+        }
 
         DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
 

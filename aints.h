@@ -8,6 +8,31 @@
 #include <cstdint>
 #include <vector>
 
+class world
+{
+public:
+    uint32_t get_world_position(uint32_t pos);
+
+    std::vector<float> noise_output;
+
+    world();
+    ~world();
+
+private:
+    const uint16_t BLOCK_AIR = 0;
+    const uint16_t BLOCK_DIRT = 1;
+    const uint16_t BLOCK_GRASS = 2;
+    const uint16_t BLOCK_FOOD = 3;
+    const uint16_t BLOCK_STONE = 4;
+    const uint16_t BLOCK_WATER = 5;
+    const uint16_t BLOCK_SAND = 6;
+    const uint16_t BLOCK_UNDERGROUND = 7;
+
+    // Start with 8192 * 2048 world
+    std::vector<uint16_t> worldspace;
+
+};
+
 class neuron
 {
 public:
