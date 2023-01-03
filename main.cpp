@@ -40,8 +40,8 @@ int main(void)
         //std::cout << "Ant Entity ID " << anAnt.getId() << std::endl;
     }
 
-    uint16_t camera_x = screenWidth * 0.5;
-    uint16_t camera_y = screenHeight * 0.5;
+    uint32_t camera_x = 0;
+    uint32_t camera_y = 0;
 
     InitWindow(screenWidth, screenHeight, "Aints");
 
@@ -55,6 +55,31 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // TODO: Update your variables here
+
+        if (IsKeyDown(KEY_RIGHT)) { if ( (camera_x + screenWidth) < world.WORLD_X ) camera_x += 1; }
+        if (IsKeyDown(KEY_LEFT)) { if ( camera_x > 0 ) camera_x -= 1; }
+        if (IsKeyDown(KEY_UP)) { if ( camera_y > 0 ) camera_y -= 1; }
+        if (IsKeyDown(KEY_DOWN)) { if ( (camera_y + screenHeight) < world.WORLD_Y ) camera_y += 1; }
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            Vector2 movement = GetMouseDelta();
+            if (movement.x > 0) {
+                if ((camera_x - movement.x) > 0) camera_x -= movement.x;
+                if (movement.y > 0) {
+                    if ((camera_y - movement.y) > 0) camera_y -= movement.y;
+                } else {
+                    if ((camera_y + screenHeight - movement.y) < world.WORLD_Y) camera_y -= movement.y;
+                }
+            } else {
+                if ((camera_x + screenWidth - movement.x) < world.WORLD_X) camera_x -= movement.x;
+                if (movement.y > 0) {
+                    if ((camera_y - movement.y) > 0) camera_y -= movement.y;
+                } else {
+                    if ((camera_y + screenHeight - movement.y) < world.WORLD_Y) camera_y -= movement.y;
+                }
+            }
+
+        }
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -63,12 +88,12 @@ int main(void)
 
         ClearBackground(RAYWHITE);
 
-        for (int ypos = 0; ypos < 900; ypos++) {
-            for (int xpos = 0; xpos < 1600; xpos++) {
+        for (int ypos = 0; ypos < screenHeight; ypos++) {
+            for (int xpos = 0; xpos < screenWidth; xpos++) {
 
-                std::vector<world::worldtile>& tile_column = world.worldtiles.at(xpos/world::worldtile::TILE_X);
+                std::vector<world::worldtile>& tile_column = world.worldtiles.at((xpos + camera_x)/world::worldtile::TILE_X);
 
-                world::worldtile& tile = tile_column.at(ypos/world::worldtile::TILE_Y);
+                world::worldtile& tile = tile_column.at((ypos + camera_y)/world::worldtile::TILE_Y);
 
 
 //                uint32_t calculated_position = xpos+(ypos*1600);
@@ -133,6 +158,7 @@ int main(void)
 
         EndDrawing();
         //----------------------------------------------------------------------------------
+
     }
 
     // De-Initialization
