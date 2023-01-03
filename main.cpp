@@ -7,6 +7,7 @@
 #include <entt/entt.hpp>
 #include <string>
 #include <iostream>
+#include <cmath>
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -40,8 +41,11 @@ int main(void)
         //std::cout << "Ant Entity ID " << anAnt.getId() << std::endl;
     }
 
-    uint32_t camera_x = 0;
-    uint32_t camera_y = 0;
+    Vector2 camera_position = { 0, 0 };
+    Camera2D camera = { 0 };
+
+    camera.target = camera_position;
+    camera.zoom = 1.0f;
 
     InitWindow(screenWidth, screenHeight, "Aints");
 
@@ -55,44 +59,50 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
 
-        if (IsKeyDown(KEY_RIGHT)) { if ( (camera_x + screenWidth) < world.WORLD_X ) camera_x += 1; }
-        if (IsKeyDown(KEY_LEFT)) { if ( camera_x > 0 ) camera_x -= 1; }
-        if (IsKeyDown(KEY_UP)) { if ( camera_y > 0 ) camera_y -= 1; }
-        if (IsKeyDown(KEY_DOWN)) { if ( (camera_y + screenHeight) < world.WORLD_Y ) camera_y += 1; }
+        if (IsKeyDown(KEY_RIGHT)) { if ( (camera_position.x + screenWidth) < world.WORLD_X ) camera_position.x += 1; }
+        if (IsKeyDown(KEY_LEFT)) { if ( camera_position.x > 0 ) camera_position.x -= 1; }
+        if (IsKeyDown(KEY_UP)) { if ( camera_position.y > 0 ) camera_position.y -= 1; }
+        if (IsKeyDown(KEY_DOWN)) { if ( (camera_position.y + screenHeight) < world.WORLD_Y ) camera_position.y += 1; }
+
+        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
+
+        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
+        else if (camera.zoom < 0.1f) camera.zoom = 0.1f;
 
         if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
             Vector2 movement = GetMouseDelta();
             if (movement.x > 0) {
-                if ((camera_x - movement.x) > 0) camera_x -= movement.x;
+                if ((camera_position.x - movement.x) > 0) camera_position.x -= movement.x;
                 if (movement.y > 0) {
-                    if ((camera_y - movement.y) > 0) camera_y -= movement.y;
+                    if ((camera_position.y - movement.y) > 0) camera_position.y -= movement.y;
                 } else {
-                    if ((camera_y + screenHeight - movement.y) < world.WORLD_Y) camera_y -= movement.y;
+                    if ((camera_position.y + screenHeight - movement.y) < world.WORLD_Y) camera_position.y -= movement.y;
                 }
             } else {
-                if ((camera_x + screenWidth - movement.x) < world.WORLD_X) camera_x -= movement.x;
+                if ((camera_position.x + screenWidth - movement.x) < world.WORLD_X) camera_position.x -= movement.x;
                 if (movement.y > 0) {
-                    if ((camera_y - movement.y) > 0) camera_y -= movement.y;
+                    if ((camera_position.y - movement.y) > 0) camera_position.y -= movement.y;
                 } else {
-                    if ((camera_y + screenHeight - movement.y) < world.WORLD_Y) camera_y -= movement.y;
+                    if ((camera_position.y + screenHeight - movement.y) < world.WORLD_Y) camera_position.y -= movement.y;
                 }
             }
-
         }
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
+        BeginMode2D(camera);
+
 
         ClearBackground(RAYWHITE);
 
         for (int ypos = 0; ypos < screenHeight; ypos++) {
             for (int xpos = 0; xpos < screenWidth; xpos++) {
 
-                std::vector<world::worldtile>& tile_column = world.worldtiles.at((xpos + camera_x)/world::worldtile::TILE_X);
+                std::vector<world::worldtile>& tile_column = world.worldtiles.at((xpos + camera_position.x)/world::worldtile::TILE_X);
 
-                world::worldtile& tile = tile_column.at((ypos + camera_y)/world::worldtile::TILE_Y);
+                world::worldtile& tile = tile_column.at((ypos + camera_position.y)/world::worldtile::TILE_Y);
 
 
 //                uint32_t calculated_position = xpos+(ypos*1600);
@@ -143,9 +153,9 @@ int main(void)
             auto &anAnt = antview.get<aints>(entity);
             anAnt.tick();
             // No need to draw if the ant is not on camera
-            if ((camera_x < anAnt.getX() < (camera_x + screenWidth)) &&
-            (camera_y < anAnt.getY() < (camera_y + screenHeight))) {
-                DrawPixel(anAnt.getX() - camera_x, anAnt.getY() - camera_y, BLACK);
+            if ((camera_position.x < anAnt.getX() < (camera_position.x + screenWidth)) &&
+            (camera_position.y < anAnt.getY() < (camera_position.y + screenHeight))) {
+                DrawPixel(anAnt.getX() - camera_position.x, anAnt.getY() - camera_position.y, BLACK);
             }
         }
 
@@ -154,6 +164,7 @@ int main(void)
         //Button000Pressed = GuiButton((Rectangle){ 430, 276, 120, 24 }, "SAMPLE TEXT");
         //----------------------------------------------------------------------------------
 
+        EndMode2D();
         EndDrawing();
         //----------------------------------------------------------------------------------
 
