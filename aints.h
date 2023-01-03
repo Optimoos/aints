@@ -18,6 +18,15 @@ public:
     world();
     ~world();
 
+    struct worldtile {
+    public:
+        static const uint8_t TILE_X = 255;
+        static const uint8_t TILE_Y = 255;
+        std::vector<uint8_t> blocks;
+    private:
+    };
+    std::vector<std::vector<worldtile>> worldtiles;
+
 private:
     const uint16_t BLOCK_AIR = 0;
     const uint16_t BLOCK_DIRT = 1;
@@ -28,8 +37,12 @@ private:
     const uint16_t BLOCK_SAND = 6;
     const uint16_t BLOCK_UNDERGROUND = 7;
 
-    // Start with 8192 * 2048 world
+    const uint16_t WORLD_X = 8192;
+    const uint16_t WORLD_Y = 2048;
+
     std::vector<uint16_t> worldspace;
+
+
 
 };
 

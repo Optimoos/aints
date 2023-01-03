@@ -37,13 +37,15 @@ int main(void)
 
     for (auto entity: antview){
         auto &anAnt = antview.get<aints>(entity);
-        std::cout << "Ant Entity ID " << anAnt.getId() << std::endl;
+        //std::cout << "Ant Entity ID " << anAnt.getId() << std::endl;
     }
 
+    uint16_t camera_x = screenWidth * 0.5;
+    uint16_t camera_y = screenHeight * 0.5;
 
     InitWindow(screenWidth, screenHeight, "Aints");
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     //--------------------------------------------------------------------------------------
     bool Button000Pressed = false;
 
@@ -64,9 +66,21 @@ int main(void)
         for (int ypos = 0; ypos < 900; ypos++) {
             for (int xpos = 0; xpos < 1600; xpos++) {
 
-                uint32_t calculated_position = xpos+(ypos*1600);
+                std::vector<world::worldtile>& tile_column = world.worldtiles.at(xpos/world::worldtile::TILE_X);
 
-                switch (world.get_world_position(calculated_position)){
+                world::worldtile& tile = tile_column.at(ypos/world::worldtile::TILE_Y);
+
+
+//                uint32_t calculated_position = xpos+(ypos*1600);
+//
+//                uint8_t greyscale = world.noise_output.at(calculated_position) * 255;
+//                uint8_t alpha = 255;
+//                Color color = {greyscale, greyscale, greyscale, alpha};
+//
+//                DrawPixel(xpos, ypos, color);
+
+//                switch (world.get_world_position(calculated_position)){
+                switch (tile.blocks.at(xpos % world::worldtile::TILE_X + ((ypos*1600) % world::worldtile::TILE_Y))){
                     case 0:
                         DrawPixel(xpos, ypos, SKYBLUE);
                         break;
@@ -94,13 +108,12 @@ int main(void)
                     case 8:
                         DrawPixel(xpos, ypos, PURPLE);
                         break;
-
                 }
 
             }
         }
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+        //DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
 
         for (auto entity: antview){
             auto &anAnt = antview.get<aints>(entity);
@@ -115,7 +128,7 @@ int main(void)
 
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
-        Button000Pressed = GuiButton((Rectangle){ 430, 276, 120, 24 }, "SAMPLE TEXT");
+        //Button000Pressed = GuiButton((Rectangle){ 430, 276, 120, 24 }, "SAMPLE TEXT");
         //----------------------------------------------------------------------------------
 
         EndDrawing();
