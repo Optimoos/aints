@@ -97,52 +97,47 @@ int main(void)
 
         ClearBackground(RAYWHITE);
 
-        for (int ypos = 0; ypos < screenHeight; ypos++) {
-            for (int xpos = 0; xpos < screenWidth; xpos++) {
+        for (uint16_t y_pixel = 0; y_pixel < screenHeight; y_pixel++) {
+            for (uint16_t x_pixel = 0; x_pixel < screenWidth; x_pixel++) {
 
-                std::vector<world::worldtile>& tile_column = world.worldtiles.at((xpos + camera_position.x)/world::worldtile::TILE_X);
+                const uint8_t x_tile = std::min((x_pixel + (int)camera_position.x), world.WORLD_X - 1) / world::worldtile::TILE_X;
+                const uint8_t y_tile = std::min((y_pixel + (int)camera_position.y), world.WORLD_Y - 1) / world::worldtile::TILE_Y;
+                world::worldtile& tile = world.worldtiles[y_tile][x_tile];
 
-                world::worldtile& tile = tile_column.at((ypos + camera_position.y)/world::worldtile::TILE_Y);
+                float& blockinfo = tile.blocks[((x_pixel + (int)camera_position.x) % world::worldtile::TILE_X) + (((y_pixel + (int)camera_position.y) % world::worldtile::TILE_Y) * 256)];
+                uint8_t greyscale = blockinfo * 255;
+                Color color = {greyscale, greyscale, greyscale, 255};
+                DrawPixel(x_pixel, y_pixel, color);
 
-
-//                uint32_t calculated_position = xpos+(ypos*1600);
-//
-//                uint8_t greyscale = world.noise_output.at(calculated_position) * 255;
-//                uint8_t alpha = 255;
-//                Color color = {greyscale, greyscale, greyscale, alpha};
-//
-//                DrawPixel(xpos, ypos, color);
-
-//                switch (world.get_world_position(calculated_position)){
-                switch (tile.blocks.at(xpos % world::worldtile::TILE_X + ((ypos*1600) % world::worldtile::TILE_Y))){
-                    case 0:
-                        DrawPixel(xpos, ypos, SKYBLUE);
-                        break;
-                    case 1:
-                        DrawPixel(xpos, ypos, BROWN);
-                        break;
-                    case 2:
-                        DrawPixel(xpos, ypos, GREEN);
-                        break;
-                    case 3:
-                        DrawPixel(xpos, ypos, RED);
-                        break;
-                    case 4:
-                        DrawPixel(xpos, ypos, DARKGRAY);
-                        break;
-                    case 5:
-                        DrawPixel(xpos, ypos, BLUE);
-                        break;
-                    case 6:
-                        DrawPixel(xpos, ypos, YELLOW);
-                        break;
-                    case 7:
-                        DrawPixel(xpos, ypos, DARKBROWN);
-                        break;
-                    case 8:
-                        DrawPixel(xpos, ypos, PURPLE);
-                        break;
-                }
+//                switch (tile.blocks.at(x_pixel % world::worldtile::TILE_X + ((y_pixel*1600) % world::worldtile::TILE_Y))){
+//                    case 0:
+//                        DrawPixel(x_pixel, y_pixel, SKYBLUE);
+//                        break;
+//                    case 1:
+//                        DrawPixel(x_pixel, y_pixel, BROWN);
+//                        break;
+//                    case 2:
+//                        DrawPixel(x_pixel, y_pixel, GREEN);
+//                        break;
+//                    case 3:
+//                        DrawPixel(x_pixel, y_pixel, RED);
+//                        break;
+//                    case 4:
+//                        DrawPixel(x_pixel, y_pixel, DARKGRAY);
+//                        break;
+//                    case 5:
+//                        DrawPixel(x_pixel, y_pixel, BLUE);
+//                        break;
+//                    case 6:
+//                        DrawPixel(x_pixel, y_pixel, YELLOW);
+//                        break;
+//                    case 7:
+//                        DrawPixel(x_pixel, y_pixel, DARKBROWN);
+//                        break;
+//                    case 8:
+//                        DrawPixel(x_pixel, y_pixel, PURPLE);
+//                        break;
+//                }
 
             }
         }
@@ -165,6 +160,8 @@ int main(void)
         //----------------------------------------------------------------------------------
 
         EndMode2D();
+
+        DrawFPS(10,10);
         EndDrawing();
         //----------------------------------------------------------------------------------
 

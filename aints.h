@@ -13,16 +13,15 @@ class world
 public:
     uint32_t get_world_position(uint32_t pos);
 
-    std::vector<float> noise_output;
-
     world();
     ~world();
 
     struct worldtile {
     public:
-        static const uint8_t TILE_X = 255;
-        static const uint8_t TILE_Y = 255;
-        std::vector<uint8_t> blocks;
+        static const uint16_t TILE_X = 256;
+        static const uint16_t TILE_Y = 256;
+        //std::vector<uint8_t> blocks;
+        std::vector<float> blocks;
     private:
     };
     std::vector<std::vector<worldtile>> worldtiles;

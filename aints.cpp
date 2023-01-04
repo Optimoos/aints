@@ -75,13 +75,6 @@ uint32_t world::get_world_position(uint32_t pos){
 
 world::world()
 {
-//    worldspace.resize(16777216);
-
-    // Create an array of floats to store the noise output in
-    //std::vector<float> noiseOutput(8192*2048);
-//    noise_output.resize(1600*900);
-
-    // Generate an 8192 * 2048 area of noise
 
 //    auto fnSimplex = FastNoise::New<FastNoise::Simplex>();
 //    auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
@@ -97,53 +90,36 @@ world::world()
 //    fnDomainScale->SetScale(0.66f);
 //
 //    auto fnPositionOutput = FastNoise::New<FastNoise::PositionOutput>();
-
 //    FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "HgAQAArXoz4ZABMAw/UoPw0AAwAAAJqZmT4JAADD9eg/AAAAgD8BBAAAAAAAAABAQAAAAAAAAAAAAAAAAAAA4MAAAAAAAAAAAAD2KFw/Af//AgA=" );
-
-    //fnGenerator->GenUniformGrid2D(noise_output.data(), 0, 0, 1600, 900, 0.02f, 1337);
+//
+//    fnGenerator->GenUniformGrid2D(noise_output.data(), 0, 0, 1600, 900, 0.02f, 1337);
 //    fnGenerator->GenTileable2D(noise_output.data(), 256, 256, 0.02f, 1337);
-//
-//    for (uint32_t index = 0; index < (1600*900); index++) {
-//        noise_output.at(index) = (noise_output.at(index) + 1) * 0.5;
-//        // Set top 200px to sky
-////        if (index < (1600*5)) {
-////            worldspace.at(index) = 0;
-////        } else {
-//            if (noise_output.at(index) < 0.5f ) {
-//                worldspace.at(index) = BLOCK_STONE;
-//            } else if ((noise_output.at(index) >= 0.5f) && (noise_output.at(index) < 0.6f)) {
-//                worldspace.at(index) = BLOCK_DIRT;
-//            } else if ((noise_output.at(index) >= 0.6f) && (noise_output.at(index) < 0.7f)) {
-//                worldspace.at(index) = BLOCK_SAND;
-//            } else {
-//                if (index < (1600*5)) {
-//                    worldspace.at(index) = BLOCK_AIR;
-//                } else {
-//                    worldspace.at(index) = BLOCK_UNDERGROUND;
-//                }
-//            }
-////        }
-//
-//    }
 
-    // Pre-size world storage
-    worldtiles.resize(WORLD_X/worldtile::TILE_X);
-    for (std::vector<worldtile>& y_tiles : worldtiles) {
-        y_tiles.resize(WORLD_Y/worldtile::TILE_Y);
-    }
 
-    // Clumsy init all tiles
-    for (std::vector<worldtile>& y_tiles : worldtiles) {
-        for (worldtile& tile : y_tiles) {
+    //auto fnGenerator = FastNoise::New<FastNoise::Checkerboard>();
+    auto fnGenerator = FastNoise::New<FastNoise::OpenSimplex2>();
+
+
+    // Pre-size world storage and fill with initial data
+    uint16_t y_tile_count = 0;
+    uint16_t x_tile_count = 0;
+    worldtiles.resize(WORLD_Y/worldtile::TILE_Y);
+    for (std::vector<worldtile>& x_tiles : worldtiles) {
+        x_tiles.resize(WORLD_X/worldtile::TILE_X);
+        for (worldtile& tile : x_tiles) {
             tile.blocks.resize(worldtile::TILE_X * worldtile::TILE_Y);
-            // All tiles will initially be solid of one type of block
-            int num = (std::rand() % (BLOCK_UNDERGROUND - BLOCK_AIR + 1)) + BLOCK_AIR;
-            for (uint8_t& block : tile.blocks) {
-                block = num;
-            }
-        }
-    }
 
+            fnGenerator->GenUniformGrid2D(tile.blocks.data(),
+                                        x_tile_count * worldtile::TILE_X,
+                                        y_tile_count * worldtile::TILE_Y,
+                                        worldtile::TILE_X,
+                                        worldtile::TILE_Y,
+                                        0.02f, 1337);
+            x_tile_count++;
+        }
+        y_tile_count++;
+        x_tile_count = 0;
+    }
 }
 
 world::~world()
