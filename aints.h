@@ -7,42 +7,42 @@
 
 #include <cstdint>
 #include <vector>
+#include "raylib.h"
 
-class world
+class World
 {
 public:
-    uint32_t get_world_position(uint32_t pos);
 
-    world();
-    ~world();
+    World();
+    ~World();
 
-    struct worldtile {
+    class WorldTile {
     public:
-        static const uint16_t TILE_X = 256;
-        static const uint16_t TILE_Y = 256;
-        //std::vector<uint8_t> blocks;
-        std::vector<float> blocks;
+        static const uint16_t kTileX = 256;
+        static const uint16_t kTileY = 256;
+        std::vector<uint8_t> blocks;
+        //std::vector<float> blocks;
+        Texture2D tile_texture_;
+
+        uint8_t NoiseToBlock(float noise);
+        Texture2D GenerateTileTexture();
     private:
+        enum BlockTypes {
+            kBlockAir,
+            kBlockDirt,
+            kBlockGrass,
+            kBlockFood,
+            kBlockStone,
+            kBlockWater,
+            kBlockSand,
+            kBlockUnderground
+        };
     };
-    std::vector<std::vector<worldtile>> worldtiles;
+    std::vector<std::vector<WorldTile>> world_tiles_;
 
-    const uint16_t WORLD_X = 8192;
-    const uint16_t WORLD_Y = 2048;
+    const uint16_t kWorldX = 8192;
+    const uint16_t kWorldY = 2048;
 private:
-    const uint16_t BLOCK_AIR = 0;
-    const uint16_t BLOCK_DIRT = 1;
-    const uint16_t BLOCK_GRASS = 2;
-    const uint16_t BLOCK_FOOD = 3;
-    const uint16_t BLOCK_STONE = 4;
-    const uint16_t BLOCK_WATER = 5;
-    const uint16_t BLOCK_SAND = 6;
-    const uint16_t BLOCK_UNDERGROUND = 7;
-
-
-
-    std::vector<uint16_t> worldspace;
-
-
 
 };
 

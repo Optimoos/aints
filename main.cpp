@@ -19,7 +19,9 @@ int main(void)
     const int screenWidth = 1600;
     const int screenHeight = 900;
 
-    world world;
+    InitWindow(screenWidth, screenHeight, "Aints");
+
+    World world;
 
     entt::registry registry;
 
@@ -38,7 +40,6 @@ int main(void)
 
     for (auto entity: antview){
         auto &anAnt = antview.get<aints>(entity);
-        //std::cout << "Ant Entity ID " << anAnt.getId() << std::endl;
     }
 
     Vector2 camera_position = { 0, 0 };
@@ -46,8 +47,6 @@ int main(void)
 
     camera.target = camera_position;
     camera.zoom = 1.0f;
-
-    InitWindow(screenWidth, screenHeight, "Aints");
 
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     //--------------------------------------------------------------------------------------
@@ -59,10 +58,10 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
 
-        if (IsKeyDown(KEY_RIGHT)) { if ( (camera_position.x + screenWidth) < world.WORLD_X ) camera_position.x += 1; }
+        if (IsKeyDown(KEY_RIGHT)) { if ( (camera_position.x + screenWidth) < world.kWorldX ) camera_position.x += 1; }
         if (IsKeyDown(KEY_LEFT)) { if ( camera_position.x > 0 ) camera_position.x -= 1; }
         if (IsKeyDown(KEY_UP)) { if ( camera_position.y > 0 ) camera_position.y -= 1; }
-        if (IsKeyDown(KEY_DOWN)) { if ( (camera_position.y + screenHeight) < world.WORLD_Y ) camera_position.y += 1; }
+        if (IsKeyDown(KEY_DOWN)) { if ( (camera_position.y + screenHeight) < world.kWorldY ) camera_position.y += 1; }
 
         camera.zoom += ((float)GetMouseWheelMove()*0.05f);
 
@@ -76,14 +75,14 @@ int main(void)
                 if (movement.y > 0) {
                     if ((camera_position.y - movement.y) > 0) camera_position.y -= movement.y;
                 } else {
-                    if ((camera_position.y + screenHeight - movement.y) < world.WORLD_Y) camera_position.y -= movement.y;
+                    if ((camera_position.y + screenHeight - movement.y) < world.kWorldY) camera_position.y -= movement.y;
                 }
             } else {
-                if ((camera_position.x + screenWidth - movement.x) < world.WORLD_X) camera_position.x -= movement.x;
+                if ((camera_position.x + screenWidth - movement.x) < world.kWorldX) camera_position.x -= movement.x;
                 if (movement.y > 0) {
                     if ((camera_position.y - movement.y) > 0) camera_position.y -= movement.y;
                 } else {
-                    if ((camera_position.y + screenHeight - movement.y) < world.WORLD_Y) camera_position.y -= movement.y;
+                    if ((camera_position.y + screenHeight - movement.y) < world.kWorldY) camera_position.y -= movement.y;
                 }
             }
         }
@@ -97,48 +96,10 @@ int main(void)
 
         ClearBackground(RAYWHITE);
 
-        for (uint16_t y_pixel = 0; y_pixel < screenHeight; y_pixel++) {
-            for (uint16_t x_pixel = 0; x_pixel < screenWidth; x_pixel++) {
-
-                const uint8_t x_tile = std::min((x_pixel + (int)camera_position.x), world.WORLD_X - 1) / world::worldtile::TILE_X;
-                const uint8_t y_tile = std::min((y_pixel + (int)camera_position.y), world.WORLD_Y - 1) / world::worldtile::TILE_Y;
-                world::worldtile& tile = world.worldtiles[y_tile][x_tile];
-
-                float& blockinfo = tile.blocks[((x_pixel + (int)camera_position.x) % world::worldtile::TILE_X) + (((y_pixel + (int)camera_position.y) % world::worldtile::TILE_Y) * 256)];
-                uint8_t greyscale = blockinfo * 255;
-                Color color = {greyscale, greyscale, greyscale, 255};
-                DrawPixel(x_pixel, y_pixel, color);
-
-//                switch (tile.blocks.at(x_pixel % world::worldtile::TILE_X + ((y_pixel*1600) % world::worldtile::TILE_Y))){
-//                    case 0:
-//                        DrawPixel(x_pixel, y_pixel, SKYBLUE);
-//                        break;
-//                    case 1:
-//                        DrawPixel(x_pixel, y_pixel, BROWN);
-//                        break;
-//                    case 2:
-//                        DrawPixel(x_pixel, y_pixel, GREEN);
-//                        break;
-//                    case 3:
-//                        DrawPixel(x_pixel, y_pixel, RED);
-//                        break;
-//                    case 4:
-//                        DrawPixel(x_pixel, y_pixel, DARKGRAY);
-//                        break;
-//                    case 5:
-//                        DrawPixel(x_pixel, y_pixel, BLUE);
-//                        break;
-//                    case 6:
-//                        DrawPixel(x_pixel, y_pixel, YELLOW);
-//                        break;
-//                    case 7:
-//                        DrawPixel(x_pixel, y_pixel, DARKBROWN);
-//                        break;
-//                    case 8:
-//                        DrawPixel(x_pixel, y_pixel, PURPLE);
-//                        break;
-//                }
-
+        for (uint16_t y_tile = 0; y_tile < (world.kWorldY / World::WorldTile::kTileY); y_tile++) {
+            for (uint16_t x_tile = 0; x_tile < (world.kWorldX / World::WorldTile::kTileX); x_tile++) {
+                World::WorldTile& tile = world.world_tiles_[y_tile][x_tile];
+                DrawTexture(tile.tile_texture_, (x_tile * World::WorldTile::kTileX) - camera_position.x, (y_tile * World::WorldTile::kTileY) - camera_position.y, WHITE);
             }
         }
 
