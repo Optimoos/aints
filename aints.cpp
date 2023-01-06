@@ -7,6 +7,17 @@
 #include <iostream>
 #include "FastNoise/FastNoise.h"
 
+void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<float>& noise_data, uint16_t x_position, uint16_t y_position) {
+
+    noise_generator->GenUniformGrid2D(noise_data.data(),
+                                  x_position * World::Tile::kTileX,
+                                  y_position * World::Tile::kTileY,
+                                  World::Tile::kTileX,
+                                  World::Tile::kTileY,
+                                  0.02f, 1337);
+
+}
+
 int aints::setId(int newId) {
     this->id = newId;
     return this->id;
@@ -97,7 +108,7 @@ World::World() {
 //    fnGenerator->GenTileable2D(noise_output.data(), 256, 256, 0.02f, 1337);
 
 
-    FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAAAAAAIA/DAABAAAAzczMPQkAAAAAgD8=" );
+    FastNoise::SmartNode<> noise_generator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAAAAAAIA/DAABAAAAzczMPQkAAAAAgD8=" );
 //    auto fnGenerator = FastNoise::New<FastNoise::Checkerboard>();
 //    auto fnGenerator = FastNoise::New<FastNoise::OpenSimplex2>();
 //    auto fnGenerator = FastNoise::New<FastNoise::PositionOutput>();
@@ -108,53 +119,79 @@ World::World() {
     // Pre-size world storage and fill with initial data
     uint16_t y_tile_count = 0;
     uint16_t x_tile_count = 0;
-    std::vector<float> noise_data;
-    noise_data.resize(WorldTile::kTileX * WorldTile::kTileY);
-    world_tiles_.resize(kWorldY / WorldTile::kTileY);
-    for (std::vector<WorldTile>& x_tiles : world_tiles_) {
-        x_tiles.resize(kWorldX / WorldTile::kTileX);
-        for (WorldTile& tile : x_tiles) {
-            tile.blocks.resize(WorldTile::kTileX * WorldTile::kTileY);
+    world_tiles_.resize(kWorldY / Tile::kTileY);
+    BS::thread_pool pool;
+    for (std::vector<Tile>& row : world_tiles_) {
+        row.resize(kWorldX / Tile::kTileX);
+        for (Tile& tile : row) {
+            tile.blocks.resize(Tile::kTileX * Tile::kTileY);
+            tile.noise_data_.resize(World::Tile::kTileX * World::Tile::kTileY);
 
-            fnGenerator->GenUniformGrid2D(noise_data.data(),
-                                          x_tile_count * WorldTile::kTileX,
-                                          y_tile_count * WorldTile::kTileY,
-                                          WorldTile::kTileX,
-                                          WorldTile::kTileY,
-                                          0.02f, 1337);
-            for (uint32_t counter = 0; counter < (WorldTile::kTileX * WorldTile::kTileY); counter++) {
-                tile.blocks.at(counter) = tile.NoiseToBlock(noise_data.at(counter));
-            }
-            tile.tile_texture_ = tile.GenerateTileTexture();
+            auto noise_future = pool.submit(GenerateTileNoise, std::ref(noise_generator), std::ref(tile.noise_data_), x_tile_count, y_tile_count);
+            //GenerateTileNoise(std::ref(noise_generator), std::ref(tile.noise_data_), x_tile_count, y_tile_count);
+            //noise_future.wait();
+
+
+//            std::thread noise_thread(GenerateTileNoise, std::ref(tile), std::ref(noise_generator), x_tile_count, y_tile_count);
+//            noise_thread.join();
             x_tile_count++;
         }
         y_tile_count++;
         x_tile_count = 0;
     }
+
+    pool.wait_for_tasks();
+
+    for (std::vector<Tile>& row : world_tiles_) {
+        for (Tile& tile : row) {
+            tile.blocks = NoiseToBlock(tile.noise_data_);
+
+            x_tile_count++;
+        }
+        y_tile_count++;
+        x_tile_count = 0;
+    }
+
+    for (std::vector<Tile>& row : world_tiles_) {
+        for (Tile& tile : row) {
+            tile.tile_texture_ = GenerateTileTexture(tile.blocks);
+
+            x_tile_count++;
+        }
+        y_tile_count++;
+        x_tile_count = 0;
+    }
+
 }
 
 World::~World() {
 
 }
 
-uint8_t World::WorldTile::NoiseToBlock(float noise) {
-    if ((noise > 0.0f) && (noise <= 0.1f)) {
-        return kBlockStone;
-    } else if ((noise > 0.1f) && (noise <=0.5f)) {
-        return kBlockDirt;
-    } else if ((noise > 0.5f) && (noise <=1.0f)) {
-        return kBlockUnderground;
-    } else {
-        return 255;
+std::vector<uint8_t> NoiseToBlock(std::vector<float> noise) {
+    std::vector<uint8_t> blocks;
+    blocks.resize(noise.size());
+
+    uint32_t location_counter = 0;
+    for (float block : noise) {
+        if ((block > 0.0f) && (block <= 0.1f)) {
+            blocks.at(location_counter) = World::Tile::kBlockStone;
+        } else if ((block > 0.1f) && (block <=0.5f)) {
+            blocks.at(location_counter) = World::Tile::kBlockDirt;
+        } else if ((block > 0.5f) && (block <=1.0f)) {
+            blocks.at(location_counter) = World::Tile::kBlockUnderground;
+        }
+        location_counter++;
     }
+    return blocks;
 }
 
 
-Texture2D World::WorldTile::GenerateTileTexture() {
-    Image image_canvas = GenImageColor(kTileX, kTileY, BLANK);
-    for (uint16_t y_position = 0; y_position < kTileY; y_position++) {
-        for (uint16_t x_position = 0; x_position < kTileX; x_position++) {
-            switch (this->blocks.at((y_position * kTileY) + x_position)){
+Texture2D GenerateTileTexture(std::vector<uint8_t>& blocks) {
+    Image image_canvas = GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK);
+    for (uint16_t y_position = 0; y_position < World::Tile::kTileY; y_position++) {
+        for (uint16_t x_position = 0; x_position < World::Tile::kTileX; x_position++) {
+            switch (blocks.at((y_position * World::Tile::kTileY) + x_position)){
                 case 0:
                     ImageDrawPixel(&image_canvas, x_position, y_position, SKYBLUE);
                     break;
@@ -189,3 +226,6 @@ Texture2D World::WorldTile::GenerateTileTexture() {
     UnloadImage(image_canvas);
     return texture;
 }
+
+
+

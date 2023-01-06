@@ -42,7 +42,7 @@ int main(void)
         auto &anAnt = antview.get<aints>(entity);
     }
 
-    Vector2 camera_position = { 0, 0 };
+    Vector2 camera_position = { 0 , 0 };
     Camera2D camera = { 0 };
 
     camera.target = camera_position;
@@ -96,10 +96,10 @@ int main(void)
 
         ClearBackground(RAYWHITE);
 
-        for (uint16_t y_tile = 0; y_tile < (world.kWorldY / World::WorldTile::kTileY); y_tile++) {
-            for (uint16_t x_tile = 0; x_tile < (world.kWorldX / World::WorldTile::kTileX); x_tile++) {
-                World::WorldTile& tile = world.world_tiles_[y_tile][x_tile];
-                DrawTexture(tile.tile_texture_, (x_tile * World::WorldTile::kTileX) - camera_position.x, (y_tile * World::WorldTile::kTileY) - camera_position.y, WHITE);
+        for (uint16_t y_tile = 0; y_tile < (world.kWorldY / World::Tile::kTileY); y_tile++) {
+            for (uint16_t x_tile = 0; x_tile < (world.kWorldX / World::Tile::kTileX); x_tile++) {
+                World::Tile& tile = world.world_tiles_[y_tile][x_tile];
+                DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX) - camera_position.x, (y_tile * World::Tile::kTileY) - camera_position.y, WHITE);
             }
         }
 
@@ -123,6 +123,8 @@ int main(void)
         EndMode2D();
 
         DrawFPS(10,10);
+        std::string debug_text = std::string("Cam X: ") + std::to_string(camera_position.x) + std::string("; Y: ") + std::to_string(camera_position.y);
+        DrawText(debug_text.c_str(), 10, 40, 10, RED);
         EndDrawing();
         //----------------------------------------------------------------------------------
 

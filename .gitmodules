@@ -10,3 +10,6 @@
 [submodule "lib/FastNoise2"]
 	path = lib/FastNoise2
 	url = https://github.com/Auburn/FastNoise2
+[submodule "lib/thread-pool"]
+	path = lib/thread-pool
+	url = https://github.com/bshoshany/thread-pool

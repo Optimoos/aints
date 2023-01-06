@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <vector>
 #include "raylib.h"
+#include "FastNoise/FastNoise.h"
+#include "BS_thread_pool.hpp"
 
 class World
 {
@@ -16,17 +18,15 @@ public:
     World();
     ~World();
 
-    class WorldTile {
+    class Tile {
     public:
         static const uint16_t kTileX = 256;
         static const uint16_t kTileY = 256;
         std::vector<uint8_t> blocks;
-        //std::vector<float> blocks;
+        std::vector<float> noise_data_;
         Texture2D tile_texture_;
 
-        uint8_t NoiseToBlock(float noise);
-        Texture2D GenerateTileTexture();
-    private:
+
         enum BlockTypes {
             kBlockAir,
             kBlockDirt,
@@ -37,8 +37,13 @@ public:
             kBlockSand,
             kBlockUnderground
         };
+
+    private:
+
     };
-    std::vector<std::vector<WorldTile>> world_tiles_;
+
+    std::vector<std::vector<Tile>> world_tiles_;
+
 
     const uint16_t kWorldX = 8192;
     const uint16_t kWorldY = 2048;
@@ -86,5 +91,10 @@ private:
     //move_neuron* mn = new move_neuron;
     move_neuron mn;
 };
+
+void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<float>& noise_data, uint16_t x_position, uint16_t y_position);
+std::vector<uint8_t> NoiseToBlock(std::vector<float> noise);
+Texture2D GenerateTileTexture(std::vector<uint8_t>& blocks);
+
 
 #endif //AIANTS_AINTS_H
