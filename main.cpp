@@ -28,11 +28,11 @@ int main(void)
 
     for (int i = 0; i < 10; i++){
         auto entity = registry.create();
-        aints ant1;
+        aints ant1(&world);
         //movementNeuron mn(ant1);
         //ant1.addNeuron();
         ant1.setId(i);
-        ant1.updateLocation(800, 800);
+        ant1.updateLocation(4000, 400);
         registry.emplace<aints>(entity, ant1);
     }
 
@@ -42,10 +42,12 @@ int main(void)
         auto &anAnt = antview.get<aints>(entity);
     }
 
-    Vector2 camera_position = { 0 , 0 };
+    // Initial position should be midway through world on X and at the top of Y
+    Vector2 camera_position = { static_cast<float>((world.kWorldX/2) - (screenWidth/2)) , 0 };
     Camera2D camera = { 0 };
 
     camera.target = camera_position;
+    camera.offset = (Vector2) {0,0};
     camera.zoom = 1.0f;
 
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
@@ -86,6 +88,8 @@ int main(void)
                 }
             }
         }
+
+        camera.target = camera_position;
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -99,7 +103,7 @@ int main(void)
         for (uint16_t y_tile = 0; y_tile < (world.kWorldY / World::Tile::kTileY); y_tile++) {
             for (uint16_t x_tile = 0; x_tile < (world.kWorldX / World::Tile::kTileX); x_tile++) {
                 World::Tile& tile = world.world_tiles_[y_tile][x_tile];
-                DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX) - camera_position.x, (y_tile * World::Tile::kTileY) - camera_position.y, WHITE);
+                DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX), (y_tile * World::Tile::kTileY), WHITE);
             }
         }
 
@@ -111,7 +115,8 @@ int main(void)
             // No need to draw if the ant is not on camera
             if ((camera_position.x < anAnt.getX() < (camera_position.x + screenWidth)) &&
             (camera_position.y < anAnt.getY() < (camera_position.y + screenHeight))) {
-                DrawPixel(anAnt.getX() - camera_position.x, anAnt.getY() - camera_position.y, BLACK);
+                //DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
+                DrawRectangle(anAnt.getX(), anAnt.getY(), 2, 2, BLACK);
             }
         }
 

@@ -14,29 +14,31 @@
 class World
 {
 public:
+    enum BlockTypes {
+        kBlockAir,
+        kBlockDirt,
+        kBlockGrass,
+        kBlockFood,
+        kBlockStone,
+        kBlockWater,
+        kBlockSand,
+        kBlockUnderground
+    };
 
     World();
     ~World();
+    BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
 
     class Tile {
     public:
         static const uint16_t kTileX = 256;
         static const uint16_t kTileY = 256;
-        std::vector<uint8_t> blocks;
+        std::vector<World::BlockTypes> blocks;
         std::vector<float> noise_data_;
         Texture2D tile_texture_;
 
 
-        enum BlockTypes {
-            kBlockAir,
-            kBlockDirt,
-            kBlockGrass,
-            kBlockFood,
-            kBlockStone,
-            kBlockWater,
-            kBlockSand,
-            kBlockUnderground
-        };
+
 
     private:
 
@@ -63,7 +65,7 @@ class move_neuron: public neuron
 {
 public:
     move_neuron();
-    void tick(float threshold, int64_t* x, int64_t* y);
+    void tick(float threshold, int64_t* x, int64_t* y, World* world);
 private:
 };
 
@@ -75,9 +77,10 @@ public:
     bool updateLocation(int64_t x, int64_t y);
     int64_t getX();
     int64_t getY();
+    World* world;
     //std::vector<*neuron> neurons;
 
-    aints();
+    aints(World* world);
     ~aints();
 
 
@@ -93,8 +96,8 @@ private:
 };
 
 void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<float>& noise_data, uint16_t x_position, uint16_t y_position);
-std::vector<uint8_t> NoiseToBlock(std::vector<float> noise);
-Texture2D GenerateTileTexture(std::vector<uint8_t>& blocks);
+std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
+Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks);
 
 
 #endif //AIANTS_AINTS_H

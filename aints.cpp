@@ -45,26 +45,40 @@ int64_t aints::getY() {
     return this->locY;
 }
 
-aints::aints() {
-
+aints::aints(World* world) {
+    this->world = world;
 }
 
 aints::~aints() {
 
 }
 
-void move_neuron::tick(float tick_threshold, int64_t* x, int64_t* y) {
-    //int64_t newX = this->getX() + ((std::rand() % 3) -1);
-    //int64_t newY = this->getY() + ((std::rand() % 3) -1);
+World::BlockTypes World::GetBlockAtPos(int64_t x_pos, int64_t y_pos) {
+    const int64_t x_loc = x_pos % Tile::kTileX;
+    const int64_t y_loc = y_pos % Tile::kTileY;
+    const uint16_t x_tile = x_pos / Tile::kTileX;
+    const uint16_t y_tile = y_pos / Tile::kTileY;
+    const Tile tile = this->world_tiles_[y_tile][x_tile];
+    return tile.blocks.at(y_loc * Tile::kTileY + x_loc);
+}
+
+void move_neuron::tick(float tick_threshold, int64_t* x, int64_t* y, World* world) {
     if (tick_threshold > this->threshold) {
-        *x += ((std::rand() % 3) -1);
-        *y += ((std::rand() % 3) -1);
+        int64_t newX = *x + ((std::rand() % 3) -1);
+        int64_t newY = *y + ((std::rand() % 3) -1);
+//        int64_t newX = *x + 1;
+//        int64_t newY = *y;
+        World::BlockTypes block = world->GetBlockAtPos(newX, newY);
+        if (block == World::BlockTypes::kBlockUnderground) {
+            *x = newX;
+            *y = newY;
+        }
     }
     //this->updateLocation(newX, newY);
 }
 
 void aints::tick() {
-    this->mn.tick(1.0f, &this->locX, &this->locY);
+    this->mn.tick(1.0f, &this->locX, &this->locY, this->world);
     this->updateLocation(this->getX(), this->getY());
 }
 
@@ -162,24 +176,52 @@ World::World() {
         x_tile_count = 0;
     }
 
+    // Generate starting area
+    FastNoise::SmartNode<> starting_area_generator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAAAAAAIA/EAAAAAA/EwAAAIA+IgAAAIA/zcxMPgUAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPw==" );
+    std::vector<std::vector<float>> starting_noise;
+    starting_noise.resize(4);
+    for (std::vector<float> entry : starting_noise) {
+        entry.resize(Tile::kTileX * Tile::kTileY);
+    }
+    uint8_t noise_counter = 0;
+    for (uint8_t y_location = 0; y_location <=1; y_location++) {
+        for (uint8_t x_location = 0; x_location <= 1; x_location++) {
+//            starting_area_generator->GenUniformGrid2D(starting_noise.at(noise_counter).data(),
+//                                              x_location,
+//                                              y_location,
+//                                              World::Tile::kTileX,
+//                                              World::Tile::kTileY,
+//                                              0.02f, 1337);
+            noise_counter++;
+
+            // Once noise is generated, it needs to be added to the existing noise data for the tiles in the middle of the map
+
+            // Could probably use some kind of GetTileAtCoordinate function here which will also be helpful in the future
+            // A function for updating the noise data may also be useful
+        }
+    }
+
+
+
+
 }
 
 World::~World() {
 
 }
 
-std::vector<uint8_t> NoiseToBlock(std::vector<float> noise) {
-    std::vector<uint8_t> blocks;
+std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise) {
+    std::vector<World::BlockTypes> blocks;
     blocks.resize(noise.size());
 
     uint32_t location_counter = 0;
     for (float block : noise) {
         if ((block > 0.0f) && (block <= 0.1f)) {
-            blocks.at(location_counter) = World::Tile::kBlockStone;
+            blocks.at(location_counter) = World::kBlockStone;
         } else if ((block > 0.1f) && (block <=0.5f)) {
-            blocks.at(location_counter) = World::Tile::kBlockDirt;
+            blocks.at(location_counter) = World::kBlockDirt;
         } else if ((block > 0.5f) && (block <=1.0f)) {
-            blocks.at(location_counter) = World::Tile::kBlockUnderground;
+            blocks.at(location_counter) = World::kBlockUnderground;
         }
         location_counter++;
     }
@@ -187,7 +229,7 @@ std::vector<uint8_t> NoiseToBlock(std::vector<float> noise) {
 }
 
 
-Texture2D GenerateTileTexture(std::vector<uint8_t>& blocks) {
+Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks) {
     Image image_canvas = GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK);
     for (uint16_t y_position = 0; y_position < World::Tile::kTileY; y_position++) {
         for (uint16_t x_position = 0; x_position < World::Tile::kTileX; x_position++) {
@@ -226,6 +268,3 @@ Texture2D GenerateTileTexture(std::vector<uint8_t>& blocks) {
     UnloadImage(image_canvas);
     return texture;
 }
-
-
-
