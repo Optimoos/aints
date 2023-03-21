@@ -32,6 +32,7 @@ public:
         std::vector<World::BlockTypes> blocks;
         std::vector<float> noise_data_;
         Texture2D tile_texture_;
+        void RegenerateTexture();
 
    private:
 
@@ -41,8 +42,9 @@ public:
     ~World();
 
     BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
+    void SetBlockAtPos(int64_t x_pos, int64_t y_pos, World::BlockTypes type);
     void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
-    Tile PosToTile(int64_t x_pos, int64_t y_pos);
+    Tile* PosToTile(int64_t x_pos, int64_t y_pos);
     std::vector<std::vector<Tile>> world_tiles_;
 
 

@@ -56,8 +56,15 @@ aints::~aints() {
 World::BlockTypes World::GetBlockAtPos(int64_t x_pos, int64_t y_pos) {
     const int64_t x_loc = x_pos % Tile::kTileX;
     const int64_t y_loc = y_pos % Tile::kTileY;
-    const Tile tile = PosToTile(x_pos, y_pos);
-    return tile.blocks.at(y_loc * Tile::kTileY + x_loc);
+    const Tile* tile = PosToTile(x_pos, y_pos);
+    return tile->blocks.at(y_loc * Tile::kTileY + x_loc);
+}
+
+void World::SetBlockAtPos(int64_t x_pos, int64_t y_pos, World::BlockTypes type) {
+    const int64_t x_loc = x_pos % Tile::kTileX;
+    const int64_t y_loc = y_pos % Tile::kTileY;
+    Tile* tile = PosToTile(x_pos, y_pos);
+    tile->blocks.at(y_loc * Tile::kTileY + x_loc) = type;
 }
 
 void move_neuron::tick(float tick_threshold, int64_t* x, int64_t* y, World* world) {
@@ -166,7 +173,8 @@ World::World() {
 
     for (std::vector<Tile>& row : world_tiles_) {
         for (Tile& tile : row) {
-            tile.tile_texture_ = GenerateTileTexture(tile.blocks);
+            //tile.tile_texture_ = GenerateTileTexture(tile.blocks);
+            tile.RegenerateTexture();
 
             x_tile_count++;
         }
@@ -268,11 +276,25 @@ Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks) {
 }
 
 void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
-
+    for (int64_t x = x_pos - size; x <= x_pos + size; x++)
+    {
+        int64_t y_range = sqrt(pow(size, 2) - pow(x - x_pos, 2));
+        for (int64_t y = y_pos - y_range; y <= y_pos + y_range; y++)
+        {
+            SetBlockAtPos(x, y, kBlockFood);
+            //FIXME: This happening as part of the loop is not efficient
+            Tile* tile = PosToTile(x_pos, y_pos);
+            tile->RegenerateTexture();
+        }
+    }
 }
 
-World::Tile World::PosToTile(int64_t x_pos, int64_t y_pos) {
+World::Tile* World::PosToTile(int64_t x_pos, int64_t y_pos) {
     const uint16_t x_tile = x_pos / Tile::kTileX;
     const uint16_t y_tile = y_pos / Tile::kTileY;
-    return this->world_tiles_[y_tile][x_tile];
+    return &this->world_tiles_.at(y_tile).at(x_tile);
+}
+
+void World::Tile::RegenerateTexture() {
+    this->tile_texture_ = GenerateTileTexture(this->blocks);
 }

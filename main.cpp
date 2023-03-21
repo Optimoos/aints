@@ -42,6 +42,9 @@ int main(void)
         auto &anAnt = antview.get<aints>(entity);
     }
 
+    world.AddFood(4000, 500, 5);
+    world.AddFood(3700, 400, 20);
+
     // Initial position should be midway through world on X and at the top of Y
     Vector2 camera_position = { static_cast<float>((world.kWorldX/2) - (screenWidth/2)) , 0 };
     Camera2D camera = { 0 };
