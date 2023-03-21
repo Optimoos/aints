@@ -12,7 +12,7 @@ set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE)
 add_subdirectory(lib/FastNoise2)
 include_directories(lib/thread-pool)
 set(SOURCES main.cpp)
-add_executable(aiants main.cpp aints.cpp aints.h)
+add_executable(aiants main.cpp aints.cpp aints.h world.cpp world.h)
 
 #add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} raylib raygui EnTT::EnTT FastNoise)
