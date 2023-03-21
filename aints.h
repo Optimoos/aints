@@ -25,10 +25,6 @@ public:
         kBlockUnderground
     };
 
-    World();
-    ~World();
-    BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
-
     class Tile {
     public:
         static const uint16_t kTileX = 256;
@@ -37,13 +33,16 @@ public:
         std::vector<float> noise_data_;
         Texture2D tile_texture_;
 
-
-
-
-    private:
+   private:
 
     };
 
+    World();
+    ~World();
+
+    BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
+    void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
+    Tile PosToTile(int64_t x_pos, int64_t y_pos);
     std::vector<std::vector<Tile>> world_tiles_;
 
 

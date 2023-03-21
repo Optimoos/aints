@@ -56,9 +56,7 @@ aints::~aints() {
 World::BlockTypes World::GetBlockAtPos(int64_t x_pos, int64_t y_pos) {
     const int64_t x_loc = x_pos % Tile::kTileX;
     const int64_t y_loc = y_pos % Tile::kTileY;
-    const uint16_t x_tile = x_pos / Tile::kTileX;
-    const uint16_t y_tile = y_pos / Tile::kTileY;
-    const Tile tile = this->world_tiles_[y_tile][x_tile];
+    const Tile tile = PosToTile(x_pos, y_pos);
     return tile.blocks.at(y_loc * Tile::kTileY + x_loc);
 }
 
@@ -267,4 +265,14 @@ Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks) {
     Texture2D texture = LoadTextureFromImage(image_canvas);
     UnloadImage(image_canvas);
     return texture;
+}
+
+void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
+
+}
+
+World::Tile World::PosToTile(int64_t x_pos, int64_t y_pos) {
+    const uint16_t x_tile = x_pos / Tile::kTileX;
+    const uint16_t y_tile = y_pos / Tile::kTileY;
+    return this->world_tiles_[y_tile][x_tile];
 }
