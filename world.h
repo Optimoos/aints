@@ -19,6 +19,11 @@ public:
         kBlockUnderground
     };
 
+    struct PosXY {
+        int64_t x{0};
+        int64_t y{0};
+    };
+
     class Tile {
     public:
         static const uint16_t kTileX = 256;
@@ -36,7 +41,9 @@ public:
     ~World();
 
     BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
-    void SetBlockAtPos(int64_t x_pos, int64_t y_pos, World::BlockTypes type);
+//    PosXY FindNearestBlockOfType(BlockTypes);
+    PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
+    void SetBlockAtPos(int64_t x_pos, int64_t y_pos, BlockTypes type);
     void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
     Tile* PosToTile(int64_t x_pos, int64_t y_pos);
     std::vector<std::vector<Tile>> world_tiles_;

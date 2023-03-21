@@ -100,13 +100,40 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
         for (int64_t y = y_pos - y_range; y <= y_pos + y_range; y++)
         {
             SetBlockAtPos(x, y, kBlockFood);
-            //FIXME: This happening as part of the loop is not efficient
+            //FIXME: This happening as part of the loop is not efficient, but otherwise we need a way of
+            //       regenerating the texture if/when food crosses a tile boundary.
             Tile* tile = PosToTile(x_pos, y_pos);
             tile->RegenerateTexture();
         }
     }
 }
 
+//World::PosXY World::FindNearestBlockOfType(BlockTypes) {}
+
+World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range) {
+    for (double r = 1; r < range ; r++)
+    {
+        bool points_found = false;
+
+        for (int64_t x = center.x - r; x <= center.x + r; x++)
+        {
+            int64_t y_range = sqrt(pow(r, 2) - pow(x - center.x, 2));
+            for (int64_t y = center.y - y_range; y <= center.y + y_range; y++)
+            {
+                if (type == GetBlockAtPos(x, y)) {
+                    return PosXY{x,y};
+                }
+                points_found = true;
+            }
+        }
+
+        if (!points_found)
+        {
+            break;
+        }
+    }
+    return PosXY{0,0};
+}
 
 World::World() {
 
