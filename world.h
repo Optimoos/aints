@@ -26,8 +26,8 @@ public:
 
     class Tile {
     public:
-        static const uint16_t kTileX = 256;
-        static const uint16_t kTileY = 256;
+        static const uint16_t kTileX{256};
+        static const uint16_t kTileY{256};
         std::vector<World::BlockTypes> blocks;
         std::vector<float> noise_data_;
         Texture2D tile_texture_;
@@ -49,8 +49,8 @@ public:
     std::vector<std::vector<Tile>> world_tiles_;
 
 
-    const uint16_t kWorldX = 8192;
-    const uint16_t kWorldY = 2048;
+    const uint16_t kWorldX{8192};
+    const uint16_t kWorldY{2048};
 private:
 
 };
