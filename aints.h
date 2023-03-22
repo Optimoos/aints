@@ -11,7 +11,7 @@
 #include "raylib.h"
 #include "world.h"
 #include "Neuron.h"
-
+#include "Brain.h"
 
 class aints
 {
@@ -23,21 +23,17 @@ public:
     int64_t getY();
     //std::vector<*neuron> neurons;
 
-    World::PosXY next_position{0,0};
-
     aints(World& world);
     ~aints();
 
 
     void tick();
+    World* world;
 
 private:
-    World* world;
-    int id = 0;
-    int64_t locX = 0;
-    int64_t locY = 0;
+    Brain brain;
 
-    World::PosXY desired_destination{0,0};
+    int id = 0;
 
     //move_neuron* mn = new move_neuron;
     move_neuron mn;

@@ -28,7 +28,7 @@ int main(void)
 
     for (int i = 0; i < 1; i++){
         auto entity = registry.create();
-        aints ant1(&world);
+        aints ant1(world);
         //movementNeuron mn(ant1);
         //ant1.addNeuron();
         ant1.setId(i);

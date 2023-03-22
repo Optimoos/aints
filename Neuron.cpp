@@ -1,31 +1,32 @@
 #include "Neuron.h"
 
-void move_neuron::tick(float tick_threshold, int64_t* x, int64_t* y, World* world, World::PosXY desired) {
+void move_neuron::tick(float tick_threshold, Brain& brain) {
     int64_t newX{};
     int64_t newY{};
     if (tick_threshold > this->threshold) {
-        if ((desired.x != 0) && (desired.y != 0)) {
-            if (*x - desired.x > 0) {
-                newX = *x - 1;
-            } else {
-                newX = *x + 1;
-            }
-            if (*y - desired.y > 0) {
-                newY = *y - 1;
-            } else {
-                newY = *y + 1;
-            }
-        } else {
-            newX = *x + ((std::rand() % 3) -1);
-            newY = *y + ((std::rand() % 3) -1);
-        }
+//        if ((desired.x != 0) && (desired.y != 0)) {
+//            if (*x - desired.x > 0) {
+//                newX = *x - 1;
+//            } else {
+//                newX = *x + 1;
+//            }
+//            if (*y - desired.y > 0) {
+//                newY = *y - 1;
+//            } else {
+//                newY = *y + 1;
+//            }
+//        } else {
+
+            newX = brain.current_position.x + ((std::rand() % 3) -1);
+            newY = brain.current_position.y + ((std::rand() % 3) -1);
+//        }
 
 //        int64_t newX = *x + 1;
 //        int64_t newY = *y;
-        World::BlockTypes block = world->GetBlockAtPos(newX, newY);
+        World::BlockTypes block = brain.world->GetBlockAtPos(newX, newY);
         if (block == World::BlockTypes::kBlockUnderground) {
-            *x = newX;
-            *y = newY;
+            brain.current_position.x = newX;
+            brain.current_position.y = newY;
         }
     }
     //this->updateLocation(newX, newY);

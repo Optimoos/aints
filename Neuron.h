@@ -1,8 +1,9 @@
 #ifndef AIANTS_NEURON_H
 #define AIANTS_NEURON_H
 
-#include "world.h"
 #include <vector>
+#include "world.h"
+#include "Brain.h"
 
 class Neuron
 {
@@ -30,7 +31,7 @@ class move_neuron: public Neuron
 {
 public:
     move_neuron();
-    void tick(float threshold, int64_t* x, int64_t* y, World* world, World::PosXY desired);
+    void tick(float threshold, Brain& brain);
     void ReceiveSignal(float weight) override;
 private:
 };
