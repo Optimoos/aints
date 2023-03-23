@@ -29,16 +29,18 @@ public:
 
     void tick();
     World* world;
+    Brain brain;
+
+    timer_neuron tn{brain};
+    move_neuron mn{brain};
+    detect_food_neuron fn{brain};
 
 private:
-    Brain brain;
 
     int id = 0;
 
     //move_neuron* mn = new move_neuron;
-    move_neuron mn;
-    detect_food_neuron fn;
-    timer_neuron tn;
+
 };
 
 #endif //AIANTS_AINTS_H

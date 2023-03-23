@@ -9,21 +9,26 @@
 class Neuron
 {
 public:
+    Neuron(Brain& brain);
+    void ConnectNeuron(Neuron& neuron);
+    virtual void tick();
 private:
 protected:
     float threshold{0.0f};
     float strength{0.0f};
-    std::vector<Neuron> outputs;
+    std::vector<Neuron*> outputs{};
+    Brain& brain;
 
-    void SendSignal(Neuron& neuron, float weight);
+
+    void SendSignal(Neuron* neuron, float weight);
     virtual void ReceiveSignal(float weight);
 };
 
 class timer_neuron: public Neuron
 {
 public:
-    timer_neuron();
-    void tick();
+    timer_neuron(Brain& brain);
+    void tick() override;
 private:
     uint16_t delay{1000};
     uint16_t delay_delta{0};
@@ -33,8 +38,9 @@ private:
 class move_neuron: public Neuron
 {
 public:
-    move_neuron();
-    void tick(float threshold, Brain& brain);
+    move_neuron(Brain& brain);
+    //void tick(float threshold, Brain& brain);
+    void tick() override;
     void ReceiveSignal(float weight) override;
 private:
 };
@@ -43,8 +49,9 @@ class detect_food_neuron: public Neuron
 {
 public:
     World::PosXY food_location{0,0};
-    detect_food_neuron();
-    void tick(World::PosXY origin, float distance, World* world);
+    detect_food_neuron(Brain& brain);
+    //void tick(World::PosXY origin, float distance, World* world);
+    void tick() override;
 private:
 
 };

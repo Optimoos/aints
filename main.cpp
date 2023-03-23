@@ -28,18 +28,19 @@ int main(void)
 
     for (int i = 0; i < 1; i++){
         auto entity = registry.create();
-        aints ant1(world);
+        aints* ant1 = new aints(world);
         //movementNeuron mn(ant1);
         //ant1.addNeuron();
-        ant1.setId(i);
-        ant1.updateLocation(4000, 400);
-        registry.emplace<aints>(entity, ant1);
+        ant1->setId(i);
+        ant1->updateLocation(4000, 400);
+        ant1->tn.ConnectNeuron(ant1->mn);
+        registry.emplace<aints*>(entity, ant1);
     }
 
-    auto antview = registry.view<aints>();
+    auto antview = registry.view<aints*>();
 
     for (auto entity: antview){
-        auto &anAnt = antview.get<aints>(entity);
+        auto &anAnt = antview.get<aints*>(entity);
     }
 
     world.AddFood(4000, 500, 5);
@@ -113,13 +114,13 @@ int main(void)
         //DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
 
         for (auto entity: antview){
-            auto &anAnt = antview.get<aints>(entity);
-            anAnt.tick();
+            auto &anAnt = antview.get<aints*>(entity);
+            anAnt->tick();
             // No need to draw if the ant is not on camera
-            if ((camera_position.x < anAnt.getX() < (camera_position.x + screenWidth)) &&
-            (camera_position.y < anAnt.getY() < (camera_position.y + screenHeight))) {
+            if ((camera_position.x < anAnt->getX() < (camera_position.x + screenWidth)) &&
+            (camera_position.y < anAnt->getY() < (camera_position.y + screenHeight))) {
                 //DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
-                DrawRectangle(anAnt.getX(), anAnt.getY(), 2, 2, BLACK);
+                DrawRectangle(anAnt->getX(), anAnt->getY(), 2, 2, BLACK);
             }
         }
 
@@ -140,6 +141,10 @@ int main(void)
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    for (auto entity: antview){
+        auto &anAnt = antview.get<aints*>(entity);
+        delete anAnt;
+    }
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 

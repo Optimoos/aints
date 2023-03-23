@@ -34,18 +34,20 @@ int64_t aints::getY() {
 aints::aints(World& world) {
     this->world = &world;
     brain.world = &world;
+
+    std::cout << "Ant constructed" << std::endl;
 }
 
 aints::~aints() {
-
+    std::cout << "Ant deconstructed" << std::endl;
 }
 
 void aints::tick() {
-    this->fn.tick(World::PosXY{this->brain.current_position.x,this->brain.current_position.y}, 1.0f, this->world);
-    if (this->fn.food_location.x != 0) {
-        this->brain.next_position = this->fn.food_location;
-    }
-    this->mn.tick(1.0f, this->brain);
+//    this->fn.tick(World::PosXY{this->brain.current_position.x,this->brain.current_position.y}, 1.0f, this->world);
+//    if (this->fn.food_location.x != 0) {
+//        this->brain.next_position = this->fn.food_location;
+//    }
+//    this->mn.tick(1.0f, this->brain);
     this->updateLocation(this->getX(), this->getY());
     this->tn.tick();
 }
