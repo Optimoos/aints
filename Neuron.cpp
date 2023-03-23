@@ -1,10 +1,9 @@
 #include "Neuron.h"
 
-void move_neuron::tick() {
-    float tick_threshold{1.0f};
+void move_neuron::tick(float threshold) {
     int64_t newX{};
     int64_t newY{};
-    if (tick_threshold > this->threshold) {
+    if (threshold > this->threshold) {
 //        if ((desired.x != 0) && (desired.y != 0)) {
 //            if (*x - desired.x > 0) {
 //                newX = *x - 1;
@@ -35,7 +34,7 @@ void move_neuron::tick() {
 
 
 //void detect_food_neuron::tick(World::PosXY origin, float strength, World* world) {
-void detect_food_neuron::tick() {
+void detect_food_neuron::tick(float threshold) {
 
     // Arbitrary adjustment of strength float (expected between 0-1) to give a reasonable search distance
     const uint64_t distance = strength * 100;
@@ -57,7 +56,7 @@ Neuron::Neuron(Brain& brain) : brain(brain) {
 
 }
 
-void Neuron::tick(){
+void Neuron::tick(float threshold){
 
 }
 
@@ -78,12 +77,13 @@ timer_neuron::timer_neuron(Brain& brain) : Neuron(brain) {
     this->last_measurement = std::chrono::steady_clock::now();
 }
 
-void timer_neuron::tick() {
+void timer_neuron::tick(float threshold) {
     this->delay_delta += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->last_measurement).count();
+    float strength = std::min(static_cast<float>((float)this->delay_delta / this->delay), 1.0f);
+    for (Neuron* neuron : this->outputs) {
+        neuron->tick(strength);
+    }
     if (this->delay_delta > this->delay) {
-        for (Neuron* neuron : this->outputs) {
-            neuron->tick();
-        }
         this->delay_delta = 0;
     }
     this->last_measurement = std::chrono::steady_clock::now();

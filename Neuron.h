@@ -11,7 +11,7 @@ class Neuron
 public:
     Neuron(Brain& brain);
     void ConnectNeuron(Neuron& neuron);
-    virtual void tick();
+    virtual void tick(float threshold = 1.0f);
 private:
 protected:
     float threshold{0.0f};
@@ -28,7 +28,7 @@ class timer_neuron: public Neuron
 {
 public:
     timer_neuron(Brain& brain);
-    void tick() override;
+    void tick(float threshold = 1.0f) override;
 private:
     uint16_t delay{1000};
     uint16_t delay_delta{0};
@@ -40,7 +40,7 @@ class move_neuron: public Neuron
 public:
     move_neuron(Brain& brain);
     //void tick(float threshold, Brain& brain);
-    void tick() override;
+    void tick(float threshold) override;
     void ReceiveSignal(float weight) override;
 private:
 };
@@ -51,7 +51,7 @@ public:
     World::PosXY food_location{0,0};
     detect_food_neuron(Brain& brain);
     //void tick(World::PosXY origin, float distance, World* world);
-    void tick() override;
+    void tick(float threshold) override;
 private:
 
 };
