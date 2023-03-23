@@ -34,6 +34,7 @@ public:
     timer_neuron tn{brain};
     move_neuron mn{brain};
     detect_food_neuron fn{brain};
+    connector_neuron cn{brain};
 
 private:
 

@@ -43,7 +43,7 @@ void detect_food_neuron::tick(float threshold) {
 
 move_neuron::move_neuron(Brain& brain) : Neuron(brain) {
     //this->brain = brain;
-    this->threshold = 0.7f;
+    this->threshold = 0.9f;
 }
 
 detect_food_neuron::detect_food_neuron(Brain& brain) : Neuron(brain) {
@@ -91,4 +91,16 @@ void timer_neuron::tick(float threshold) {
 
 void Neuron::ConnectNeuron(Neuron& neuron) {
     this->outputs.push_back(&neuron);
+}
+
+connector_neuron::connector_neuron(Brain& brain) : Neuron(brain) {
+    this->threshold = 0.5f;
+}
+
+void connector_neuron::tick(float threshold) {
+    if (threshold > this->threshold) {
+        for (Neuron* neuron : this->outputs) {
+            neuron->tick(threshold);
+        }
+    }
 }

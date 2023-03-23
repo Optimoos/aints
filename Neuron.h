@@ -56,4 +56,11 @@ private:
 
 };
 
+class connector_neuron: public Neuron
+{
+public:
+    connector_neuron(Brain& brain);
+    void tick(float threshold) override;
+};
+
 #endif
