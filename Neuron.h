@@ -69,4 +69,18 @@ public:
     task_neuron(Brain& brain);
     void tick(float threshold) override;
 };
+
+class detect_adjacent_neuron: public Neuron
+{
+public:
+    detect_adjacent_neuron(Brain& brain);
+    void tick(float threshold) override;
+};
+
+class gather_neuron: public Neuron
+{
+public:
+    gather_neuron(Brain& brain);
+    void tick(float threshold) override;
+};
 #endif

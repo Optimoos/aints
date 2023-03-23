@@ -36,6 +36,7 @@ public:
     detect_food_neuron fn{brain};
     connector_neuron cn{brain};
     task_neuron taskn{brain};
+    gather_neuron gn{brain};
 
 private:
 

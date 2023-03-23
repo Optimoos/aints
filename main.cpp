@@ -37,6 +37,7 @@ int main(void)
         ant1->tn.ConnectNeuron(ant1->taskn);
         ant1->cn.ConnectNeuron(ant1->mn);
         ant1->tn.ConnectNeuron(ant1->fn);
+        ant1->tn.ConnectNeuron(ant1->gn);
         registry.emplace<aints*>(entity, ant1);
     }
 

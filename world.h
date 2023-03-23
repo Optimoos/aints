@@ -40,13 +40,14 @@ public:
     World();
     ~World();
 
-    BlockTypes GetBlockAtPos(int64_t x_pos, int64_t y_pos);
+    BlockTypes GetBlockAtPos(PosXY blockpos);
 //    PosXY FindNearestBlockOfType(BlockTypes);
     PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
-    void SetBlockAtPos(int64_t x_pos, int64_t y_pos, BlockTypes type);
+    void SetBlockAtPos(PosXY position, BlockTypes type);
     void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
     Tile* PosToTile(int64_t x_pos, int64_t y_pos);
     std::vector<std::vector<Tile>> world_tiles_;
+    bool OneBlockAway(PosXY center, PosXY block);
 
 
     const uint16_t kWorldX{8192};

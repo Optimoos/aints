@@ -11,17 +11,17 @@ void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<floa
 
 }
 
-World::BlockTypes World::GetBlockAtPos(int64_t x_pos, int64_t y_pos) {
-    const int64_t x_loc = x_pos % Tile::kTileX;
-    const int64_t y_loc = y_pos % Tile::kTileY;
-    const Tile* tile = PosToTile(x_pos, y_pos);
+World::BlockTypes World::GetBlockAtPos(PosXY blockpos) {
+    const int64_t x_loc = blockpos.x % Tile::kTileX;
+    const int64_t y_loc = blockpos.y % Tile::kTileY;
+    const Tile* tile = PosToTile(blockpos.x, blockpos.y);
     return tile->blocks.at(y_loc * Tile::kTileY + x_loc);
 }
 
-void World::SetBlockAtPos(int64_t x_pos, int64_t y_pos, World::BlockTypes type) {
-    const int64_t x_loc = x_pos % Tile::kTileX;
-    const int64_t y_loc = y_pos % Tile::kTileY;
-    Tile* tile = PosToTile(x_pos, y_pos);
+void World::SetBlockAtPos(PosXY position, World::BlockTypes type) {
+    const int64_t x_loc = position.x % Tile::kTileX;
+    const int64_t y_loc = position.y % Tile::kTileY;
+    Tile* tile = PosToTile(position.x, position.y);
     tile->blocks.at(y_loc * Tile::kTileY + x_loc) = type;
 }
 
@@ -99,7 +99,7 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
         int64_t y_range = sqrt(pow(size, 2) - pow(x - x_pos, 2));
         for (int64_t y = y_pos - y_range; y <= y_pos + y_range; y++)
         {
-            SetBlockAtPos(x, y, kBlockFood);
+            SetBlockAtPos(PosXY{x, y}, kBlockFood);
             //FIXME: This happening as part of the loop is not efficient, but otherwise we need a way of
             //       regenerating the texture if/when food crosses a tile boundary.
             Tile* tile = PosToTile(x_pos, y_pos);
@@ -120,7 +120,7 @@ World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type, uint64
             int64_t y_range = sqrt(pow(r, 2) - pow(x - center.x, 2));
             for (int64_t y = center.y - y_range; y <= center.y + y_range; y++)
             {
-                if (type == GetBlockAtPos(x, y)) {
+                if (type == GetBlockAtPos(PosXY{x, y})) {
                     return PosXY{x,y};
                 }
                 points_found = true;
@@ -255,4 +255,14 @@ World::World() {
 
 World::~World() {
 
+}
+
+bool World::OneBlockAway(PosXY center, PosXY block) {
+    int64_t absx = abs(block.x - center.x);
+    int64_t absy = abs(block.y - center.y);
+    if ((absx == 1) && (absy == 1)) {
+        return true;
+    } else {
+        return false;
+    }
 }
