@@ -63,4 +63,10 @@ public:
     void tick(float threshold) override;
 };
 
+class task_neuron: public Neuron
+{
+public:
+    task_neuron(Brain& brain);
+    void tick(float threshold) override;
+};
 #endif

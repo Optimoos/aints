@@ -4,32 +4,29 @@ void move_neuron::tick(float threshold) {
     int64_t newX{};
     int64_t newY{};
     if (threshold > this->threshold) {
-//        if ((desired.x != 0) && (desired.y != 0)) {
-//            if (*x - desired.x > 0) {
-//                newX = *x - 1;
-//            } else {
-//                newX = *x + 1;
-//            }
-//            if (*y - desired.y > 0) {
-//                newY = *y - 1;
-//            } else {
-//                newY = *y + 1;
-//            }
-//        } else {
-
+        if (brain.current_task == Brain::kTaskWandering) {
             newX = brain.current_position.x + ((std::rand() % 3) -1);
             newY = brain.current_position.y + ((std::rand() % 3) -1);
-//        }
-
-//        int64_t newX = *x + 1;
-//        int64_t newY = *y;
+        } else {
+            if ((brain.current_destination.x != 0) && (brain.current_destination.y != 0)) {
+                if (brain.current_position.x - brain.current_destination.x > 0) {
+                    newX = brain.current_position.x - 1;
+                } else {
+                    newX = brain.current_position.x + 1;
+                }
+                if (brain.current_position.y - brain.current_destination.y > 0) {
+                    newY = brain.current_position.y - 1;
+                } else {
+                    newY = brain.current_position.y + 1;
+                }
+            }
+        }
         World::BlockTypes block = brain.world->GetBlockAtPos(newX, newY);
         if (block == World::BlockTypes::kBlockUnderground) {
             brain.current_position.x = newX;
             brain.current_position.y = newY;
         }
     }
-    //this->updateLocation(newX, newY);
 }
 
 
@@ -101,6 +98,28 @@ void connector_neuron::tick(float threshold) {
     if (threshold > this->threshold) {
         for (Neuron* neuron : this->outputs) {
             neuron->tick(threshold);
+        }
+    }
+}
+
+task_neuron::task_neuron(Brain& brain) : Neuron(brain) {
+    this->threshold = 0.99f;
+}
+
+void task_neuron::tick(float threshold) {
+    if (threshold > this->threshold) {
+        switch (this->brain.current_task) {
+            case Brain::kTaskWandering:
+                //this->brain.current_task =
+                break;
+            case Brain::kTaskSearchingFood:
+                break;
+            case Brain::kTaskGatheringFood:
+                break;
+            case Brain::kTaskDeliveringFood:
+                break;
+            default:
+                break;
         }
     }
 }
