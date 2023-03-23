@@ -47,4 +47,5 @@ void aints::tick() {
     }
     this->mn.tick(1.0f, this->brain);
     this->updateLocation(this->getX(), this->getY());
+    this->tn.tick();
 }

@@ -2,6 +2,7 @@
 #define AIANTS_NEURON_H
 
 #include <vector>
+#include <chrono>
 #include "world.h"
 #include "Brain.h"
 
@@ -25,6 +26,8 @@ public:
     void tick();
 private:
     uint16_t delay{1000};
+    uint16_t delay_delta{0};
+    std::chrono::time_point<std::chrono::steady_clock> last_measurement;
 };
 
 class move_neuron: public Neuron

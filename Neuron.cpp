@@ -59,3 +59,17 @@ void Neuron::ReceiveSignal(float weight) {
 void move_neuron::ReceiveSignal(float weight) {
 
 }
+
+timer_neuron::timer_neuron() {
+    this->last_measurement = std::chrono::steady_clock::now();
+}
+
+void timer_neuron::tick() {
+    this->delay_delta += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->last_measurement).count();
+    if (this->delay_delta > this->delay) {
+        std::cout << "Timer tick!" << std::endl;
+        this->delay_delta = 0;
+    }
+    this->last_measurement = std::chrono::steady_clock::now();
+}
+

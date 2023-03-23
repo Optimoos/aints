@@ -38,6 +38,7 @@ private:
     //move_neuron* mn = new move_neuron;
     move_neuron mn;
     detect_food_neuron fn;
+    timer_neuron tn;
 };
 
 #endif //AIANTS_AINTS_H
