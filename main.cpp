@@ -34,7 +34,9 @@ int main(void)
         ant1->setId(i);
         ant1->updateLocation(4000, 400);
         ant1->tn.ConnectNeuron(ant1->cn);
+        ant1->tn.ConnectNeuron(ant1->taskn);
         ant1->cn.ConnectNeuron(ant1->mn);
+        ant1->tn.ConnectNeuron(ant1->fn);
         registry.emplace<aints*>(entity, ant1);
     }
 
