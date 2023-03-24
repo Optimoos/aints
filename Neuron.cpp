@@ -5,7 +5,7 @@ void move_neuron::tick(float threshold) {
     int64_t newX{};
     int64_t newY{};
     if (threshold > this->threshold) {
-        if (brain.current_task == Brain::kTaskWandering) {
+        if ((brain.current_task == Brain::kTaskWandering) || (brain.current_task == Brain::kTaskSearchingFood)) {
             newX = brain.current_position.x + ((std::rand() % 3) -1);
             newY = brain.current_position.y + ((std::rand() % 3) -1);
         } else {
@@ -62,7 +62,8 @@ void detect_food_neuron::tick(float threshold) {
     }
 
     // Arbitrary adjustment of strength float (expected between 0-1) to give a reasonable search distance
-    const float distance = threshold * 100;
+    // FIXME: This should be attached to a gene
+    const float distance = threshold * 500;
 
     if ((this->brain.current_task == Brain::kTaskSearchingFood) && (this->brain.current_destination.Expired()) &&
         (threshold >= this->threshold)) {
