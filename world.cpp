@@ -23,7 +23,7 @@ void World::SetBlockAtPos(PosXY position, World::BlockTypes type) {
     const int64_t y_loc = position.y % Tile::kTileY;
     Tile* tile = PosToTile(position.x, position.y);
     tile->blocks.at(y_loc * Tile::kTileY + x_loc) = type;
-    std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
+    //std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
 }
 
 std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise) {
@@ -284,13 +284,15 @@ bool World::OneBlockAway(PosXY center, PosXY block) {
     }
 }
 
-World::PosXY World::FindPath(PosXY origin, PosXY destination) {
+std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination) {
 
     AStarSearch<MapSearchNode> astarsearch;
 
     unsigned int SearchCount = 0;
 
     const unsigned int NumSearches = 1;
+
+    std::vector<World::PosXY> results;
 
     while(SearchCount < NumSearches)
     {
@@ -312,19 +314,19 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
         unsigned int SearchState;
         unsigned int SearchSteps = 0;
 
+
         do
         {
             SearchState = astarsearch.SearchStep();
 
             SearchSteps++;
-
 #if DEBUG_LISTS
 
-            cout << "Steps:" << SearchSteps << "\n";
+            std::cout << "Steps:" << SearchSteps << "\n";
 
 			int len = 0;
 
-			cout << "Open:\n";
+			std::cout << "Open:\n";
 			MapSearchNode *p = astarsearch.GetOpenListStart();
 			while( p )
 			{
@@ -336,11 +338,11 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
 
 			}
 
-			cout << "Open list has " << len << " nodes\n";
+			std::cout << "Open list has " << len << " nodes\n";
 
 			len = 0;
 
-			cout << "Closed:\n";
+			std::cout << "Closed:\n";
 			p = astarsearch.GetClosedListStart();
 			while( p )
 			{
@@ -351,7 +353,7 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
 				p = astarsearch.GetClosedListNext();
 			}
 
-			cout << "Closed list has " << len << " nodes\n";
+			std::cout << "Closed list has " << len << " nodes\n";
 #endif
 
         }
@@ -369,6 +371,7 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
             int steps = 0;
 
             node->PrintNodeInfo();
+            results.push_back(World::PosXY{node->x, node->y});
             for( ;; )
             {
                 node = astarsearch.GetSolutionNext();
@@ -379,6 +382,7 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
                 }
 
                 node->PrintNodeInfo();
+                results.push_back(World::PosXY{node->x, node->y});
                 steps ++;
 
             };
@@ -404,5 +408,5 @@ World::PosXY World::FindPath(PosXY origin, PosXY destination) {
         astarsearch.EnsureMemoryFreed();
     }
 
-    return World::PosXY{0,0};
+    return results;
 }

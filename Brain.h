@@ -42,7 +42,7 @@ public:
     LocationInformation adjacent_blocks[7];
     TaskType current_task{kTaskWandering};
     World::BlockTypes carrying{World::kBlockAir};
-    World::PosXY next_position{0,0};
+    std::vector<World::PosXY> next_position{};
     World::PosXY current_position{0,0};
     World::PosXY food_stockpile{4000,300};
     World::PosXY dropoff_position{0,0};

@@ -51,7 +51,7 @@ public:
     static std::vector<std::vector<Tile>> world_tiles_;
     bool OneBlockAway(PosXY center, PosXY block);
     bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
-    PosXY FindPath(PosXY origin, PosXY destination);
+    std::vector<PosXY> FindPath(PosXY origin, PosXY destination);
 
 
     const uint16_t kWorldX{8192};

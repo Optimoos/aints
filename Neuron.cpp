@@ -4,26 +4,47 @@ void move_neuron::tick(float threshold) {
     World::PosXY newXY{0,0};
 
 
+
+
     //FIXME: Temporarily setting threshold to 0 for full speed ants
     this->threshold = 0.0f;
     if (threshold > this->threshold) {
+        // Random movement if we're wandering or searching for food
+        // FIXME: food searching random movement will be replaced with pheromone behavior
         if ((brain.current_task == Brain::kTaskWandering) || (brain.current_task == Brain::kTaskSearchingFood)) {
             newXY.x = brain.current_position.x + ((std::rand() % 3) -1);
             newXY.y = brain.current_position.y + ((std::rand() % 3) -1);
         } else {
+            // Destination is valid
+            // FIXME: The position data structure should have an internal "valid" test
             if ((brain.current_destination.position.x != 0) && (brain.current_destination.position.y != 0)) {
+                // If the destination has expired and we're not carrying anything, go back to wandering
                 if (brain.current_destination.Expired() && (brain.carrying == World::kBlockAir)) {
                     brain.current_task = Brain::kTaskWandering;
-                } else if ((brain.current_task == Brain::kTaskGatheringFood) &&
-                           (!brain.world->OneBlockAway(brain.current_position, brain.current_destination.position))){
-                    if (!brain.sensed_food.Expired()) { brain.current_destination.position = brain.sensed_food.position; };
+                // If we're gathering food
+                } else if (brain.current_task == Brain::kTaskGatheringFood) {
+                    // Make sure our destination hasn't expired
+                    if (!brain.sensed_food.Expired()) {
+                        // If we have a path already, move there
+                        if (!brain.next_position.empty()) {
+                            newXY = brain.next_position.back();
+                            brain.next_position.pop_back();
+                        } else {
+                            // Generate a new path
+                            // FIXME: arbitrary search distance around FindNearestBlockOfType isn't great
+                            World::PosXY nearest_underground = brain.world->FindNearestBlockOfType(brain.sensed_food.position, World::kBlockUnderground, 10);
+                            brain.next_position = brain.world->FindPath(brain.current_position, nearest_underground);
+                        }
+                    } else {
+                        // Go back to sensing/searching
+                        brain.current_task = Brain::kTaskSearchingFood;
+                    }
                     this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
                     std::cout << "Path info gathering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
 
                 } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir)) {
                     this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
                     std::cout << "Path info delivering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
-
                 }
             }
         }
