@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <chrono>
+#include <ctime>
 #include "world.h"
 #include "Brain.h"
 
@@ -31,7 +32,6 @@ public:
     void tick(float threshold = 1.0f) override;
 private:
     uint16_t delay{1000};
-    uint16_t delay_delta{0};
     std::chrono::time_point<std::chrono::steady_clock> last_measurement;
 };
 

@@ -16,7 +16,8 @@ public:
         kBlockStone,
         kBlockWater,
         kBlockSand,
-        kBlockUnderground
+        kBlockUnderground,
+        kBlockStockpiledFood
     };
 
     struct PosXY {
@@ -48,6 +49,7 @@ public:
     Tile* PosToTile(int64_t x_pos, int64_t y_pos);
     std::vector<std::vector<Tile>> world_tiles_;
     bool OneBlockAway(PosXY center, PosXY block);
+    bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
 
 
     const uint16_t kWorldX{8192};

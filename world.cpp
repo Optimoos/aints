@@ -58,31 +58,34 @@ Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks) {
     for (uint16_t y_position = 0; y_position < World::Tile::kTileY; y_position++) {
         for (uint16_t x_position = 0; x_position < World::Tile::kTileX; x_position++) {
             switch (blocks.at((y_position * World::Tile::kTileY) + x_position)){
-                case 0:
+                case World::kBlockAir:
                     ImageDrawPixel(&image_canvas, x_position, y_position, SKYBLUE);
                     break;
-                case 1:
+                case World::kBlockDirt:
                     ImageDrawPixel(&image_canvas, x_position, y_position, BROWN);
                     break;
-                case 2:
+                case World::kBlockGrass:
                     ImageDrawPixel(&image_canvas, x_position, y_position, GREEN);
                     break;
-                case 3:
+                case World::kBlockFood:
                     ImageDrawPixel(&image_canvas, x_position, y_position, RED);
                     break;
-                case 4:
+                case World::kBlockStone:
                     ImageDrawPixel(&image_canvas, x_position, y_position, DARKGRAY);
                     break;
-                case 5:
+                case World::kBlockWater:
                     ImageDrawPixel(&image_canvas, x_position, y_position, BLUE);
                     break;
-                case 6:
+                case World::kBlockSand:
                     ImageDrawPixel(&image_canvas, x_position, y_position, YELLOW);
                     break;
-                case 7:
+                case World::kBlockUnderground:
                     ImageDrawPixel(&image_canvas, x_position, y_position, DARKBROWN);
                     break;
-                case 8:
+                case World::kBlockStockpiledFood:
+                    ImageDrawPixel(&image_canvas, x_position, y_position, RED);
+                    break;
+                default:
                     ImageDrawPixel(&image_canvas, x_position, y_position, PURPLE);
                     break;
             }
@@ -257,12 +260,17 @@ World::~World() {
 
 }
 
-bool World::OneBlockAway(PosXY center, PosXY block) {
+bool World::XBlocksAway(PosXY center, PosXY block, uint16_t distance) {
     int64_t absx = abs(block.x - center.x);
     int64_t absy = abs(block.y - center.y);
-    if ((absx == 1) && (absy == 1)) {
+    if ((absx <= distance) && (absy <= distance)) {
         return true;
     } else {
         return false;
     }
 }
+
+bool World::OneBlockAway(PosXY center, PosXY block) {
+    return XBlocksAway(center, block, 1);
+}
+

@@ -10,9 +10,11 @@ void move_neuron::tick(float threshold) {
             newY = brain.current_position.y + ((std::rand() % 3) -1);
         } else {
             if ((brain.current_destination.position.x != 0) && (brain.current_destination.position.y != 0)) {
-                if (brain.current_destination.Expired()) {
+                if (brain.current_destination.Expired() && (brain.carrying == World::kBlockAir)) {
                     brain.current_task = Brain::kTaskWandering;
-                } else if (brain.current_task == Brain::kTaskGatheringFood) {
+                } else if ((brain.current_task == Brain::kTaskGatheringFood) &&
+                           (!brain.world->OneBlockAway(brain.current_position, brain.current_destination.position))){
+                    if (!brain.sensed_food.Expired()) { brain.current_destination.position = brain.sensed_food.position; };
                     if (brain.current_position.x - brain.current_destination.position.x > 0) {
                         newX = brain.current_position.x - 1;
                     } else {
@@ -23,7 +25,9 @@ void move_neuron::tick(float threshold) {
                     } else {
                         newY = brain.current_position.y + 1;
                     }
-                } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir)) {
+
+                } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir) &&
+                           (!brain.world->XBlocksAway(brain.current_position, brain.current_destination.position, 20))) {
                     if (brain.current_position.x - brain.current_destination.position.x > 0) {
                         newX = brain.current_position.x - 1;
                     } else {
@@ -42,9 +46,6 @@ void move_neuron::tick(float threshold) {
             brain.current_position.x = newX;
             brain.current_position.y = newY;
         }
-        if (brain.world->OneBlockAway(brain.current_position, brain.current_destination.position)) {
-            brain.current_task = Brain::kTaskDeliveringFood;
-        }
     }
 }
 
@@ -52,22 +53,38 @@ void move_neuron::tick(float threshold) {
 //void detect_food_neuron::tick(World::PosXY origin, float strength, World* world) {
 void detect_food_neuron::tick(float threshold) {
 
-    // Arbitrary adjustment of strength float (expected between 0-1) to give a reasonable search distance
-    const uint64_t distance = threshold * 100;
 
     // FIXME: Initial fudge of threshold for manual task progression
     if (this->brain.current_task == Brain::kTaskSearchingFood) {
-        this->threshold = 0.0f;
-    } else {
         this->threshold = 0.99f;
+    } else {
+        this->threshold = 0.0f;
     }
 
-    if ((this->brain.current_task == Brain::kTaskSearchingFood) && (this->brain.current_destination.Expired()) && (threshold >= this->threshold)) {
-        this->brain.current_destination.position = this->brain.world->FindNearestBlockOfType(this->brain.current_position, World::BlockTypes::kBlockFood, distance);
-        std::cout << "Food found: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
-        // FIXME: Probably don't want arbitrary expiry times here
-        this->brain.current_destination.StartTimer(10000);
-    }
+    // Arbitrary adjustment of strength float (expected between 0-1) to give a reasonable search distance
+    const float distance = threshold * 100;
+
+    if ((this->brain.current_task == Brain::kTaskSearchingFood) && (this->brain.current_destination.Expired()) &&
+        (threshold >= this->threshold)) {
+        this->brain.sensed_food.position = this->brain.world->FindNearestBlockOfType(this->brain.current_position,
+                                                                                     World::BlockTypes::kBlockFood,
+                                                                                     static_cast<uint64_t>(distance));
+        if ((brain.sensed_food.position.x != 0) && (brain.sensed_food.position.y != 0)) {
+            // FIXME: Probably don't want arbitrary expiry times here
+            this->brain.sensed_food.StartTimer(10000);
+            std::cout << "Food found: " << this->brain.sensed_food.position.x << ", "
+                      << this->brain.sensed_food.position.y << std::endl;
+            this->brain.current_destination.position = this->brain.sensed_food.position;
+            this->brain.current_destination.StartTimer(10000);
+            std::cout << "Moving towards: " << this->brain.current_destination.position.x << ", "
+                      << this->brain.current_destination.position.y << std::endl;
+            // FIXME: Forcing a transition to gathering behavior here doesn't feel right but we need it for now
+            //this->brain.current_task = Brain::kTaskGatheringFood;
+        }
+    } // else {
+        // Didn't detect food, wander for a bit
+        //this->brain.current_task = Brain::kTaskWandering;
+    //}
     //this->food_location = world->FindNearestBlockOfType(origin, World::BlockTypes::kBlockFood, distance);
 }
 
@@ -108,15 +125,24 @@ timer_neuron::timer_neuron(Brain& brain) : Neuron(brain) {
 }
 
 void timer_neuron::tick(float threshold) {
-    this->delay_delta += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->last_measurement).count();
-    float strength = std::min(static_cast<float>((float)this->delay_delta / this->delay), 1.0f);
+
+    const auto now = std::chrono::steady_clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - this->last_measurement);
+    //std::cout << "Time since last tick: " <<  (now - this->last_measurement) << " Duration: " << duration << std::endl;
+    //this->delay_delta += duration.count();
+    //std::cout << "Delay delta: " << std::to_string(this->delay_delta) << std::endl;
+    float strength = std::min(static_cast<float>((float)duration.count() / this->delay), 1.0f);
+    //std::cout << "Timer strength: " << std::to_string(strength) << std::endl;
     for (Neuron* neuron : this->outputs) {
         neuron->tick(strength);
     }
-    if (this->delay_delta > this->delay) {
-        this->delay_delta = 0;
+    if (duration.count() >= this->delay) {
+        this->last_measurement = std::chrono::steady_clock::now();
     }
-    this->last_measurement = std::chrono::steady_clock::now();
+    //this->last_measurement = std::chrono::steady_clock::now();
+
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " ms\n";
+
 }
 
 void Neuron::ConnectNeuron(Neuron& neuron) {
@@ -136,7 +162,7 @@ void connector_neuron::tick(float threshold) {
 }
 
 task_neuron::task_neuron(Brain& brain) : Neuron(brain) {
-    this->threshold = 0.99f;
+    this->threshold = 0.0f;
 }
 
 void task_neuron::tick(float threshold) {
@@ -146,8 +172,13 @@ void task_neuron::tick(float threshold) {
                 this->brain.current_task = Brain::kTaskSearchingFood;
                 break;
             case Brain::kTaskSearchingFood:
-                if ((this->brain.current_task == Brain::kTaskSearchingFood) && (!this->brain.current_destination.Expired())) {
+                std::cout << "Searching" << std::endl;
+                if ((this->brain.current_task == Brain::kTaskSearchingFood) && (!this->brain.sensed_food.Expired())) {
                     this->brain.current_task = Brain::kTaskGatheringFood;
+                } else {
+                    //FIXME: Probably want a way to fall back to wandering but the below doesn't work as expected with
+                    //       the current tests above
+                    //this->brain.current_task = Brain::kTaskWandering;
                 }
                 break;
             case Brain::kTaskGatheringFood:
@@ -158,9 +189,12 @@ void task_neuron::tick(float threshold) {
             case Brain::kTaskDeliveringFood:
                 if (this->brain.carrying == World::kBlockAir) {
                     this->brain.current_task = Brain::kTaskWandering;
+                } else {
+                    this->brain.current_destination.position = this->brain.food_stockpile;
                 }
                 break;
             default:
+                std::cout << "No task match!!!" << std::endl;
                 break;
         }
     }
@@ -185,10 +219,23 @@ void gather_neuron::tick(float threshold) {
     if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockAir)) {
         if (this->brain.world->OneBlockAway(this->brain.current_position, this->brain.current_destination.position)) {
             this->brain.carrying = this->brain.world->GetBlockAtPos(this->brain.current_destination.position);
-            this->brain.world->SetBlockAtPos(this->brain.current_destination.position, World::kBlockAir);
+            this->brain.world->SetBlockAtPos(this->brain.current_destination.position, World::kBlockUnderground);
+            //this->brain.current_task = Brain::kTaskDeliveringFood;
             World::Tile* tile = this->brain.world->PosToTile(this->brain.current_destination.position.x, this->brain.current_destination.position.y);
             tile->RegenerateTexture();
             std::cout << "Picked up food" << std::endl;
+        }
+    }
+    if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockFood) &&
+        //FIXME: dropping food at arbitrary distance to stockpile, this should be dynamic
+        (this->brain.world->XBlocksAway(this->brain.current_position, this->brain.food_stockpile, 20))) {
+        if (this->brain.world->GetBlockAtPos(World::PosXY{this->brain.current_position.x + 1, this->brain.current_position.y}) == World::kBlockUnderground) {
+            this->brain.world->SetBlockAtPos(World::PosXY{this->brain.current_position.x + 1, this->brain.current_position.y}, World::kBlockStockpiledFood);
+            World::Tile* tile = this->brain.world->PosToTile(this->brain.current_position.x + 1, this->brain.current_position.y);
+            tile->RegenerateTexture();
+            this->brain.carrying = World::kBlockAir;
+            //this->brain.current_task = Brain::kTaskWandering;
+            std::cout << "Dropped off food" << std::endl;
         }
     }
 }

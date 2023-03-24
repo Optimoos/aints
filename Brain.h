@@ -18,15 +18,13 @@ public:
         World::BlockTypes block{World::kBlockAir};
 
         void StartTimer(int64_t time_until_expiry) {this->expired = false; this->expiry = time_until_expiry; this->expiry_clock = std::chrono::steady_clock::now();};
-        bool Expired(){this->expiry_delta += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->expiry_clock).count();
-            if (this->expiry_delta > this->expiry) { this->expiry_delta = 0; this->expired = true;};
-            this->expiry_clock = std::chrono::steady_clock::now();
+        bool Expired(){auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - this->expiry_clock);
+            if ( duration.count() > this->expiry ) { this->expired = true; this->expiry_clock = std::chrono::steady_clock::now(); };
             return this->expired;
         };
     private:
         bool expired{true};
         int64_t expiry{5000};
-        int64_t expiry_delta{0};
         std::chrono::time_point<std::chrono::steady_clock> expiry_clock{std::chrono::steady_clock::now()};
 
     };
@@ -46,6 +44,7 @@ public:
     World::PosXY next_position{0,0};
     World::PosXY current_position{0,0};
     World::PosXY food_stockpile{4000,300};
+    LocationInformation sensed_food;
     LocationInformation current_destination;
     World* world;
 
