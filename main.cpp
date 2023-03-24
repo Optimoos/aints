@@ -111,7 +111,7 @@ int main(void)
 
         for (uint16_t y_tile = 0; y_tile < (world.kWorldY / World::Tile::kTileY); y_tile++) {
             for (uint16_t x_tile = 0; x_tile < (world.kWorldX / World::Tile::kTileX); x_tile++) {
-                World::Tile& tile = world.world_tiles_[y_tile][x_tile];
+                World::Tile& tile = World::world_tiles_[y_tile][x_tile];
                 DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX), (y_tile * World::Tile::kTileY), WHITE);
             }
         }

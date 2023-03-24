@@ -10,7 +10,7 @@ set(BUILD_RAYGUI_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build raygui examples
 add_subdirectory(lib/raygui/projects/CMake)
 set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE)
 add_subdirectory(lib/FastNoise2)
-include_directories(lib/thread-pool)
+include_directories(lib/thread-pool lib/astar-algorithm-cpp/cpp)
 set(SOURCES main.cpp)
 add_executable(aiants main.cpp aints.cpp aints.h world.cpp world.h neuron.cpp neuron.h Brain.cpp Brain.h)
 
