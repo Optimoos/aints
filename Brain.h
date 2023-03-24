@@ -22,6 +22,7 @@ public:
             if ( duration.count() > this->expiry ) { this->expired = true; this->expiry_clock = std::chrono::steady_clock::now(); };
             return this->expired;
         };
+        void SetExpired() {this->expired = true;}
     private:
         bool expired{true};
         int64_t expiry{5000};
@@ -44,6 +45,7 @@ public:
     World::PosXY next_position{0,0};
     World::PosXY current_position{0,0};
     World::PosXY food_stockpile{4000,300};
+    World::PosXY dropoff_position{0,0};
     LocationInformation sensed_food;
     LocationInformation current_destination;
     World* world;

@@ -1,13 +1,14 @@
 #include "Neuron.h"
 
 void move_neuron::tick(float threshold) {
-    //FIXME: Update newX and newY to a PosXY object.
-    int64_t newX{};
-    int64_t newY{};
+    World::PosXY newXY{0,0};
+
+    //FIXME: Temporarily setting threshold to 0 for full speed ants
+    this->threshold = 0.0f;
     if (threshold > this->threshold) {
         if ((brain.current_task == Brain::kTaskWandering) || (brain.current_task == Brain::kTaskSearchingFood)) {
-            newX = brain.current_position.x + ((std::rand() % 3) -1);
-            newY = brain.current_position.y + ((std::rand() % 3) -1);
+            newXY.x = brain.current_position.x + ((std::rand() % 3) -1);
+            newXY.y = brain.current_position.y + ((std::rand() % 3) -1);
         } else {
             if ((brain.current_destination.position.x != 0) && (brain.current_destination.position.y != 0)) {
                 if (brain.current_destination.Expired() && (brain.carrying == World::kBlockAir)) {
@@ -15,38 +16,37 @@ void move_neuron::tick(float threshold) {
                 } else if ((brain.current_task == Brain::kTaskGatheringFood) &&
                            (!brain.world->OneBlockAway(brain.current_position, brain.current_destination.position))){
                     if (!brain.sensed_food.Expired()) { brain.current_destination.position = brain.sensed_food.position; };
-                    if (brain.current_position.x - brain.current_destination.position.x > 0) {
-                        newX = brain.current_position.x - 1;
-                    } else {
-                        newX = brain.current_position.x + 1;
-                    }
-                    if (brain.current_position.y - brain.current_destination.position.y > 0) {
-                        newY = brain.current_position.y - 1;
-                    } else {
-                        newY = brain.current_position.y + 1;
-                    }
+                    NextPosition(brain.current_position, brain.current_destination.position, newXY);
 
-                } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir) &&
-                           (!brain.world->XBlocksAway(brain.current_position, brain.current_destination.position, 20))) {
-                    if (brain.current_position.x - brain.current_destination.position.x > 0) {
-                        newX = brain.current_position.x - 1;
-                    } else {
-                        newX = brain.current_position.x + 1;
-                    }
-                    if (brain.current_position.y - brain.current_destination.position.y > 0) {
-                        newY = brain.current_position.y - 1;
-                    } else {
-                        newY = brain.current_position.y + 1;
-                    }
+                } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir)) {
+                    NextPosition(brain.current_position, brain.current_destination.position, newXY);
                 }
             }
         }
-        World::BlockTypes block = brain.world->GetBlockAtPos(World::PosXY{newX, newY});
-        if (block == World::BlockTypes::kBlockUnderground) {
-            brain.current_position.x = newX;
-            brain.current_position.y = newY;
+        if ((newXY.x != 0) && (newXY.y != 0)) {
+            World::BlockTypes block = brain.world->GetBlockAtPos(newXY);
+            if (block == World::BlockTypes::kBlockUnderground) {
+                brain.current_position = newXY;
+            } else {
+                std::cout << "Path obstructed!" << brain.current_position.x << ", " << brain.current_position.y << std::endl;
+                //Fixme: This is a panic fix to move to an open block 1 block away if it exists.
+                //       This should be handled by better pathfinding instead.
+                brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 2);
+            }
+        } else {
+            std::cout << "Path invalid! " << brain.current_position.x << ", " << brain.current_position.y << std::endl;
+            brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 2);
+
         }
     }
+}
+
+void move_neuron::NextPosition(World::PosXY origin, World::PosXY destination, World::PosXY& next) {
+    double distance = sqrt(pow(destination.x - origin.x, 2) + pow(destination.y - origin.y, 2));
+    double directionX = (destination.x - origin.x) / distance;
+    double directionY = (destination.y - origin.y) / distance;
+    next.x = round(origin.x + directionX);
+    next.y = round(origin.y + directionY);
 }
 
 
@@ -188,6 +188,7 @@ void task_neuron::tick(float threshold) {
                 }
                 break;
             case Brain::kTaskDeliveringFood:
+                // std::cout << "Delivering" << std::endl;
                 if (this->brain.carrying == World::kBlockAir) {
                     this->brain.current_task = Brain::kTaskWandering;
                 } else {
@@ -224,19 +225,29 @@ void gather_neuron::tick(float threshold) {
             //this->brain.current_task = Brain::kTaskDeliveringFood;
             World::Tile* tile = this->brain.world->PosToTile(this->brain.current_destination.position.x, this->brain.current_destination.position.y);
             tile->RegenerateTexture();
-            std::cout << "Picked up food" << std::endl;
+            this->brain.current_destination.SetExpired();
+            std::cout << "Picked up food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
         }
     }
-    if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockFood) &&
-        //FIXME: dropping food at arbitrary distance to stockpile, this should be dynamic
-        (this->brain.world->XBlocksAway(this->brain.current_position, this->brain.food_stockpile, 20))) {
-        if (this->brain.world->GetBlockAtPos(World::PosXY{this->brain.current_position.x + 1, this->brain.current_position.y}) == World::kBlockUnderground) {
-            this->brain.world->SetBlockAtPos(World::PosXY{this->brain.current_position.x + 1, this->brain.current_position.y}, World::kBlockStockpiledFood);
-            World::Tile* tile = this->brain.world->PosToTile(this->brain.current_position.x + 1, this->brain.current_position.y);
-            tile->RegenerateTexture();
-            this->brain.carrying = World::kBlockAir;
-            //this->brain.current_task = Brain::kTaskWandering;
-            std::cout << "Dropped off food" << std::endl;
+    if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockFood)) {
+        if (this->brain.current_destination.Expired()) {
+            //FIXME: Arbitrarily searching 20 blocks around the stockpile, should be dynamic
+            this->brain.dropoff_position = this->brain.world->FindNearestBlockOfType(this->brain.food_stockpile, World::kBlockUnderground, 20);
+            this->brain.current_destination.position = brain.dropoff_position;
+            std::cout << "Delivering to: " << this->brain.dropoff_position.x << ", " << this->brain.dropoff_position.y << std::endl;
+            this->brain.current_destination.StartTimer(10000);
+        }
+        if (this->brain.world->OneBlockAway(this->brain.current_position, this->brain.dropoff_position)) {
+            if (this->brain.world->GetBlockAtPos(this->brain.dropoff_position) == World::kBlockUnderground) {
+                this->brain.world->SetBlockAtPos(this->brain.dropoff_position, World::kBlockStockpiledFood);
+                World::Tile *tile = this->brain.world->PosToTile(this->brain.dropoff_position.x,
+                                                                 this->brain.dropoff_position.y);
+                tile->RegenerateTexture();
+                this->brain.carrying = World::kBlockAir;
+                this->brain.current_destination.SetExpired();
+                //this->brain.current_task = Brain::kTaskWandering;
+                std::cout << "Dropped off food" << std::endl;
+            }
         }
     }
 }

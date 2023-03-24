@@ -23,6 +23,7 @@ void World::SetBlockAtPos(PosXY position, World::BlockTypes type) {
     const int64_t y_loc = position.y % Tile::kTileY;
     Tile* tile = PosToTile(position.x, position.y);
     tile->blocks.at(y_loc * Tile::kTileY + x_loc) = type;
+    std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
 }
 
 std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise) {
@@ -114,14 +115,14 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
 //World::PosXY World::FindNearestBlockOfType(BlockTypes) {}
 
 World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range) {
-    for (double r = 1; r < range ; r++)
+    for (int64_t r = 1; r < range ; r++)
     {
         bool points_found = false;
 
-        for (int64_t x = center.x - r; x <= center.x + r; x++)
+        for (int64_t x = std::max(center.x - r, (int64_t)0); x <= std::min(center.x + r, (int64_t)kWorldX); x++)
         {
             int64_t y_range = sqrt(pow(r, 2) - pow(x - center.x, 2));
-            for (int64_t y = center.y - y_range; y <= center.y + y_range; y++)
+            for (int64_t y = std::max(center.y - y_range, (int64_t)0); y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
             {
                 if (type == GetBlockAtPos(PosXY{x, y})) {
                     return PosXY{x,y};
@@ -271,6 +272,12 @@ bool World::XBlocksAway(PosXY center, PosXY block, uint16_t distance) {
 }
 
 bool World::OneBlockAway(PosXY center, PosXY block) {
-    return XBlocksAway(center, block, 1);
+    int64_t absx = abs(block.x - center.x);
+    int64_t absy = abs(block.y - center.y);
+    if (((absx == 1) && (absy == 1)) || ((absx == 1) && (absy == 0)) || ((absx == 0) && (absy == 1))) {
+        return true;
+    } else {
+        return false;
+    }
 }
 

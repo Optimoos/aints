@@ -42,6 +42,7 @@ public:
     //void tick(float threshold, Brain& brain);
     void tick(float threshold) override;
     void ReceiveSignal(float weight) override;
+    void NextPosition(World::PosXY origin, World::PosXY destination, World::PosXY& next);
 private:
 };
 
