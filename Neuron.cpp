@@ -3,6 +3,7 @@
 void move_neuron::tick(float threshold) {
     World::PosXY newXY{0,0};
 
+
     //FIXME: Temporarily setting threshold to 0 for full speed ants
     this->threshold = 0.0f;
     if (threshold > this->threshold) {
@@ -16,10 +17,13 @@ void move_neuron::tick(float threshold) {
                 } else if ((brain.current_task == Brain::kTaskGatheringFood) &&
                            (!brain.world->OneBlockAway(brain.current_position, brain.current_destination.position))){
                     if (!brain.sensed_food.Expired()) { brain.current_destination.position = brain.sensed_food.position; };
-                    NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    std::cout << "Path info gathering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
 
                 } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir)) {
-                    NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    std::cout << "Path info delivering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
+
                 }
             }
         }
@@ -28,25 +32,31 @@ void move_neuron::tick(float threshold) {
             if (block == World::BlockTypes::kBlockUnderground) {
                 brain.current_position = newXY;
             } else {
-                std::cout << "Path obstructed!" << brain.current_position.x << ", " << brain.current_position.y << std::endl;
+                std::cout << "Block: " << block;
+                std::cout << "Path obstructed!" << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
                 //Fixme: This is a panic fix to move to an open block 1 block away if it exists.
                 //       This should be handled by better pathfinding instead.
-                brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 2);
+                //brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 3);
             }
         } else {
-            std::cout << "Path invalid! " << brain.current_position.x << ", " << brain.current_position.y << std::endl;
-            brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 2);
+            std::cout << "Path invalid! " << brain.current_position.x << ", " << brain.current_position.y << " New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
+            //brain.current_position = brain.world->FindNearestBlockOfType(brain.current_position, World::kBlockUnderground, 3);
 
         }
     }
 }
 
 void move_neuron::NextPosition(World::PosXY origin, World::PosXY destination, World::PosXY& next) {
+    std::cout << "Next position origin: " << origin.x << ", " << origin.y << std::endl;
+    std::cout << "Next position destination: " << destination.x << ", " << destination.y << std::endl;
     double distance = sqrt(pow(destination.x - origin.x, 2) + pow(destination.y - origin.y, 2));
     double directionX = (destination.x - origin.x) / distance;
     double directionY = (destination.y - origin.y) / distance;
     next.x = round(origin.x + directionX);
     next.y = round(origin.y + directionY);
+    if ((next.x < 0) || (next.y < 0)){
+        std::cout << "STOP HERE WTF IS GOING ON!" << std::endl;
+    }
 }
 
 
@@ -92,6 +102,7 @@ void detect_food_neuron::tick(float threshold) {
 move_neuron::move_neuron(Brain& brain) : Neuron(brain) {
     //this->brain = brain;
     this->threshold = 0.9f;
+
 }
 
 detect_food_neuron::detect_food_neuron(Brain& brain) : Neuron(brain) {
@@ -186,6 +197,10 @@ void task_neuron::tick(float threshold) {
                 if (this->brain.carrying == World::kBlockFood) {
                     this->brain.current_task = Brain::kTaskDeliveringFood;
                 }
+                if ((this->brain.current_destination.position.x == 0) && (this->brain.current_destination.position.y == 0)) {
+                    this->brain.current_task = Brain::kTaskSearchingFood;
+                }
+
                 break;
             case Brain::kTaskDeliveringFood:
                 // std::cout << "Delivering" << std::endl;
@@ -209,7 +224,15 @@ detect_adjacent_neuron::detect_adjacent_neuron(Brain& brain) : Neuron(brain) {
 
 void detect_adjacent_neuron::tick(float threshold) {
     if (threshold > this->threshold) {
+        int dx[8] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+        int dy[8] = { -1, 0, 1, -1, 1, -1, 0, 1 };
 
+        for (int i = 0; i < 8; i++) {
+            int x = this->brain.current_position.x + dx[i];
+            int y = this->brain.current_position.y + dy[i];
+            this->brain.adjacent_blocks[i].block = this->brain.world->GetBlockAtPos(World::PosXY{x,y});
+            this->brain.adjacent_blocks[i].position = World::PosXY{x,y};
+        }
     }
 }
 
@@ -226,6 +249,7 @@ void gather_neuron::tick(float threshold) {
             World::Tile* tile = this->brain.world->PosToTile(this->brain.current_destination.position.x, this->brain.current_destination.position.y);
             tile->RegenerateTexture();
             this->brain.current_destination.SetExpired();
+            this->brain.sensed_food.SetExpired();
             std::cout << "Picked up food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
         }
     }

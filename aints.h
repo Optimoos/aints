@@ -37,6 +37,7 @@ public:
     connector_neuron cn{brain};
     task_neuron taskn{brain};
     gather_neuron gn{brain};
+    detect_adjacent_neuron dan{brain};
 
 private:
 
