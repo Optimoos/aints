@@ -1,3 +1,8 @@
 cmake-*
 .idea
-lib
+lib/FastNoise2/
+lib/entt/
+lib/raygui/
+lib/raylib/
+lib/thread-pool/
+lib/astar-algorithm-cpp/

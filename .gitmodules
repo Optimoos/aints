@@ -13,3 +13,6 @@
 [submodule "lib/thread-pool"]
 	path = lib/thread-pool
 	url = https://github.com/bshoshany/thread-pool
+[submodule "lib/astar-algorithm-cpp"]
+	path = lib/astar-algorithm-cpp
+	url = https://github.com/justinhj/astar-algorithm-cpp.git
