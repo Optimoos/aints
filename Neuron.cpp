@@ -33,7 +33,12 @@ void move_neuron::tick(float threshold) {
                             // Generate a new path
                             // FIXME: arbitrary search distance around FindNearestBlockOfType isn't great
                             World::PosXY nearest_underground = brain.world->FindNearestBlockOfType(brain.sensed_food.position, World::kBlockUnderground, 10);
-                            brain.next_position = brain.world->FindPath(brain.current_position, nearest_underground);
+                            std::vector<World::PosXY> temp_route = brain.world->FindPath(brain.current_position, nearest_underground);
+                            brain.next_position.empty();
+                            for(std::vector<World::PosXY>::reverse_iterator i = temp_route.rbegin(); i != temp_route.rend(); ++i)
+                            {
+                                brain.next_position.push_back(*i);
+                            }
                         }
                     } else {
                         // Go back to sensing/searching
