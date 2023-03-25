@@ -44,11 +44,26 @@ void move_neuron::tick(float threshold) {
                         // Go back to sensing/searching
                         brain.current_task = Brain::kTaskSearchingFood;
                     }
-                    this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    //this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
                     std::cout << "Path info gathering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
 
                 } else if ((brain.current_task == Brain::kTaskDeliveringFood) && (brain.carrying != World::kBlockAir)) {
-                    this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    //this->NextPosition(brain.current_position, brain.current_destination.position, newXY);
+                    if (!brain.next_position.empty()) {
+                        newXY = brain.next_position.back();
+                        brain.next_position.pop_back();
+                    } else {
+                        World::PosXY nearest_underground = brain.world->FindNearestBlockOfType(brain.dropoff_position,
+                                                                                               World::kBlockUnderground,
+                                                                                               10);
+                        std::vector<World::PosXY> temp_route = brain.world->FindPath(brain.current_position,
+                                                                                     nearest_underground);
+                        brain.next_position.empty();
+                        for (std::vector<World::PosXY>::reverse_iterator i = temp_route.rbegin();
+                             i != temp_route.rend(); ++i) {
+                            brain.next_position.push_back(*i);
+                        }
+                    }
                     std::cout << "Path info delivering: " << brain.current_position.x << ", " << brain.current_position.y << "New: " << newXY.x << ", " << newXY.y << " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
                 }
             }
@@ -269,15 +284,12 @@ gather_neuron::gather_neuron(Brain& brain) : Neuron(brain) {
 void gather_neuron::tick(float threshold) {
     if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockAir)) {
         if (this->brain.world->OneBlockAway(this->brain.current_position, this->brain.current_destination.position)) {
-            this->brain.carrying = this->brain.world->GetBlockAtPos(this->brain.current_destination.position);
-            this->brain.world->SetBlockAtPos(this->brain.current_destination.position, World::kBlockUnderground);
-            this->brain.current_task = Brain::kTaskDeliveringFood;
-            World::Tile* tile = this->brain.world->PosToTile(this->brain.current_destination.position.x, this->brain.current_destination.position.y);
-            tile->GenerateTilePixels();
-            tile->GenerateTileTexture(true);
-            this->brain.current_destination.SetExpired();
-            this->brain.sensed_food.SetExpired();
-            std::cout << "Picked up food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
+            if (this->brain.world->PickupBlockAtPos(this->brain.current_position, this->brain.current_destination.position, this->brain.carrying)) {
+                this->brain.current_task = Brain::kTaskDeliveringFood;
+                this->brain.current_destination.SetExpired();
+                this->brain.sensed_food.SetExpired();
+                std::cout << "Picked up food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
+            }
         }
     }
     if ((threshold > this->threshold) && (this->brain.carrying == World::kBlockFood)) {
@@ -289,15 +301,11 @@ void gather_neuron::tick(float threshold) {
             this->brain.current_destination.StartTimer(10000);
         }
         if (this->brain.world->OneBlockAway(this->brain.current_position, this->brain.dropoff_position)) {
-            if (this->brain.world->GetBlockAtPos(this->brain.dropoff_position) == World::kBlockUnderground) {
-                this->brain.world->SetBlockAtPos(this->brain.dropoff_position, World::kBlockStockpiledFood);
-                World::Tile *tile = this->brain.world->PosToTile(this->brain.dropoff_position.x,
-                                                                 this->brain.dropoff_position.y);
-                tile->GenerateTilePixels();
-                tile->GenerateTileTexture(true);
+            if (this->brain.world->PlaceBlockAtPos(this->brain.current_position, this->brain.dropoff_position, this->brain.carrying))
+            {
                 this->brain.carrying = World::kBlockAir;
                 this->brain.current_destination.SetExpired();
-                //this->brain.current_task = Brain::kTaskWandering;
+                this->brain.current_task = Brain::kTaskWandering;
                 std::cout << "Dropped off food" << std::endl;
             }
         }

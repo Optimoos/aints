@@ -23,6 +23,8 @@ void World::SetBlockAtPos(PosXY position, World::BlockTypes type) {
     const int64_t y_loc = position.y % Tile::kTileY;
     Tile* tile = PosToTile(position.x, position.y);
     tile->blocks.at(y_loc * Tile::kTileY + x_loc) = type;
+    tile->GenerateTilePixels();
+    tile->GenerateTileTexture(true);
     //std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
 }
 
@@ -415,4 +417,43 @@ std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination) {
 World::Tile::~Tile()
 {
     UnloadImage(*tile_pixels);
+}
+
+// Returns true if block placed successfully, false if it failed
+bool World::PlaceBlockAtPos(PosXY &my_position, PosXY &place_position, BlockTypes type)
+{
+    bool successfully_placed = false;
+    // Check if we're within reach
+    if (OneBlockAway(my_position, place_position)) {
+        // Is the place position empty
+        if (GetBlockAtPos(place_position) == World::kBlockUnderground) {
+            if (type == kBlockFood) {
+                type = kBlockStockpiledFood;
+            }
+            this->SetBlockAtPos(place_position, type);
+            successfully_placed = true;
+        }
+    } else {
+        successfully_placed = false;
+    }
+    return successfully_placed;
+}
+
+// Returns true if block picked up successfully, false if it failed
+bool World::PickupBlockAtPos(PosXY &my_position, PosXY &place_position, BlockTypes &type)
+{
+    bool successfully_picked = false;
+    // Check if we're within reach
+    if (OneBlockAway(my_position, place_position)) {
+        // Is the place position valid for pickup
+        // FIXME: This should be a property of the block rather than a static list
+        if (GetBlockAtPos(place_position) != World::kBlockUnderground) {
+            type = GetBlockAtPos(place_position);
+            this->SetBlockAtPos(place_position, World::kBlockUnderground);
+            successfully_picked = true;
+        }
+    } else {
+        successfully_picked = false;
+    }
+    return successfully_picked;
 }

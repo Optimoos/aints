@@ -48,6 +48,6 @@ void aints::tick() {
 //        this->brain.next_position = this->fn.food_location;
 //    }
 //    this->mn.tick(1.0f, this->brain);
-    this->updateLocation(this->getX(), this->getY());
+//    this->updateLocation(this->getX(), this->getY());
     this->tn.tick();
 }

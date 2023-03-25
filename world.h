@@ -52,6 +52,8 @@ public:
 //    PosXY FindNearestBlockOfType(BlockTypes);
     PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
     void SetBlockAtPos(PosXY position, BlockTypes type);
+    bool PlaceBlockAtPos(PosXY &my_position, PosXY &place_position, BlockTypes type);
+    bool PickupBlockAtPos(PosXY &my_position, PosXY &place_position, BlockTypes &type);
     void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
     static Tile* PosToTile(int64_t x_pos, int64_t y_pos);
     static std::vector<std::vector<Tile>> world_tiles_;
