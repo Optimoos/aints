@@ -1,89 +1,111 @@
 #ifndef AIANTS_NEURON_H
 #define AIANTS_NEURON_H
 
-#include <vector>
 #include <chrono>
 #include <ctime>
-#include "world.h"
+#include <vector>
+
 #include "Brain.h"
+#include "world.h"
 
 class Neuron
 {
-public:
-    Neuron(Brain& brain);
-    void ConnectNeuron(Neuron& neuron);
-    virtual void tick(float threshold = 1.0f);
-private:
-protected:
-    float threshold{0.0f};
-    float strength{0.0f};
-    std::vector<Neuron*> outputs{};
-    Brain& brain;
+ public:
+  Neuron(Brain &brain);
 
+  void ConnectNeuron(Neuron &neuron);
 
-    void SendSignal(Neuron* neuron, float weight);
-    virtual void ReceiveSignal(float weight);
+  virtual void tick(float threshold= 1.0f);
+
+ private:
+ protected:
+  float threshold{0.0f};
+  float strength{0.0f};
+  std::vector<Neuron *> outputs{};
+  Brain &brain;
+
+  void SendSignal(Neuron *neuron, float weight);
+
+  virtual void ReceiveSignal(float weight);
 };
 
-class timer_neuron: public Neuron
+class timer_neuron : public Neuron
 {
-public:
-    timer_neuron(Brain& brain);
-    void tick(float threshold = 1.0f) override;
-private:
-    uint16_t delay{1000};
-    std::chrono::time_point<std::chrono::steady_clock> last_measurement;
+ public:
+  timer_neuron(Brain &brain);
+
+  void tick(float threshold= 1.0f) override;
+
+ private:
+  uint16_t delay{1000};
+  std::chrono::time_point<std::chrono::steady_clock> last_measurement;
 };
 
-class move_neuron: public Neuron
+class move_neuron : public Neuron
 {
-public:
-    move_neuron(Brain& brain);
-    //void tick(float threshold, Brain& brain);
-    void tick(float threshold) override;
-    void ReceiveSignal(float weight) override;
-    void MoveOneTowards(World::PosXY &origin, World::PosXY &destination);
-    void RandomMovement(World::PosXY &original_location, World::PosXY &new_location);
-    void move_neuron::GenerateAStarPath(World::PosXY &current_position, World::PosXY &destination, World &world, std::vector<World::PosXY> &path_vector);
-private:
+ public:
+  move_neuron(Brain &brain);
+
+  // void tick(float threshold, Brain& brain);
+  void tick(float threshold) override;
+
+  void ReceiveSignal(float weight) override;
+
+  void MoveOneTowards(World::PosXY &origin, World::PosXY &destination);
+
+  void RandomMovement(World::PosXY &original_location,
+                      World::PosXY &new_location);
+
+  void move_neuron::GenerateAStarPath(World::PosXY &current_position,
+                                      World::PosXY &destination, World &world,
+                                      std::vector<World::PosXY> &path_vector);
+
+ private:
 };
 
-class detect_food_neuron: public Neuron
+class detect_food_neuron : public Neuron
 {
-public:
-    World::PosXY food_location{0,0};
-    detect_food_neuron(Brain& brain);
-    //void tick(World::PosXY origin, float distance, World* world);
-    void tick(float threshold) override;
-private:
+ public:
+  World::PosXY food_location{0, 0};
 
+  detect_food_neuron(Brain &brain);
+
+  // void tick(World::PosXY origin, float distance, World* world);
+  void tick(float threshold) override;
+
+ private:
 };
 
-class connector_neuron: public Neuron
+class connector_neuron : public Neuron
 {
-public:
-    connector_neuron(Brain& brain);
-    void tick(float threshold) override;
+ public:
+  connector_neuron(Brain &brain);
+
+  void tick(float threshold) override;
 };
 
-class task_neuron: public Neuron
+class task_neuron : public Neuron
 {
-public:
-    task_neuron(Brain& brain);
-    void tick(float threshold) override;
+ public:
+  task_neuron(Brain &brain);
+
+  void tick(float threshold) override;
 };
 
-class detect_adjacent_neuron: public Neuron
+class detect_adjacent_neuron : public Neuron
 {
-public:
-    detect_adjacent_neuron(Brain& brain);
-    void tick(float threshold) override;
+ public:
+  detect_adjacent_neuron(Brain &brain);
+
+  void tick(float threshold) override;
 };
 
-class gather_neuron: public Neuron
+class gather_neuron : public Neuron
 {
-public:
-    gather_neuron(Brain& brain);
-    void tick(float threshold) override;
+ public:
+  gather_neuron(Brain &brain);
+
+  void tick(float threshold) override;
 };
+
 #endif
