@@ -42,7 +42,9 @@ public:
     //void tick(float threshold, Brain& brain);
     void tick(float threshold) override;
     void ReceiveSignal(float weight) override;
-    void NextPosition(World::PosXY origin, World::PosXY destination, World::PosXY& next);
+    void MoveOneTowards(World::PosXY &origin, World::PosXY &destination);
+    void RandomMovement(World::PosXY &original_location, World::PosXY &new_location);
+    void move_neuron::GenerateAStarPath(World::PosXY &current_position, World::PosXY &destination, World &world, std::vector<World::PosXY> &path_vector);
 private:
 };
 

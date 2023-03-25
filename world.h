@@ -70,8 +70,6 @@ private:
 
 void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<float>& noise_data, uint16_t x_position, uint16_t y_position);
 std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
-void GenerateTileTexture(std::vector<World::BlockTypes>& blocks);
-
 
 // FIXME: The below is mostly lifted directly from the findpath.cpp example for the A* library, this can probably
 //        be cleaned up for our specific use case
