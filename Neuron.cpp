@@ -271,9 +271,10 @@ void gather_neuron::tick(float threshold) {
         if (this->brain.world->OneBlockAway(this->brain.current_position, this->brain.current_destination.position)) {
             this->brain.carrying = this->brain.world->GetBlockAtPos(this->brain.current_destination.position);
             this->brain.world->SetBlockAtPos(this->brain.current_destination.position, World::kBlockUnderground);
-            //this->brain.current_task = Brain::kTaskDeliveringFood;
+            this->brain.current_task = Brain::kTaskDeliveringFood;
             World::Tile* tile = this->brain.world->PosToTile(this->brain.current_destination.position.x, this->brain.current_destination.position.y);
-            tile->RegenerateTexture();
+            tile->GenerateTilePixels();
+            tile->GenerateTileTexture(true);
             this->brain.current_destination.SetExpired();
             this->brain.sensed_food.SetExpired();
             std::cout << "Picked up food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
@@ -292,7 +293,8 @@ void gather_neuron::tick(float threshold) {
                 this->brain.world->SetBlockAtPos(this->brain.dropoff_position, World::kBlockStockpiledFood);
                 World::Tile *tile = this->brain.world->PosToTile(this->brain.dropoff_position.x,
                                                                  this->brain.dropoff_position.y);
-                tile->RegenerateTexture();
+                tile->GenerateTilePixels();
+                tile->GenerateTileTexture(true);
                 this->brain.carrying = World::kBlockAir;
                 this->brain.current_destination.SetExpired();
                 //this->brain.current_task = Brain::kTaskWandering;

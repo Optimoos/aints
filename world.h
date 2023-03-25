@@ -33,7 +33,13 @@ public:
         std::vector<World::BlockTypes> blocks;
         std::vector<float> noise_data_;
         Texture2D tile_texture_;
-        void RegenerateTexture();
+        Image tile_pixels[kTileX * kTileY]{GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
+        void GenerateTilePixels();
+        void GenerateTileTexture(bool update = false);
+
+        ~Tile();
+
+
 
     private:
 
@@ -62,7 +68,7 @@ private:
 
 void GenerateTileNoise(FastNoise::SmartNode<>& noise_generator, std::vector<float>& noise_data, uint16_t x_position, uint16_t y_position);
 std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
-Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks);
+void GenerateTileTexture(std::vector<World::BlockTypes>& blocks);
 
 
 // FIXME: The below is mostly lifted directly from the findpath.cpp example for the A* library, this can probably

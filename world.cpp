@@ -50,51 +50,50 @@ World::Tile* World::PosToTile(int64_t x_pos, int64_t y_pos) {
     return &world_tiles_.at(y_tile).at(x_tile);
 }
 
-void World::Tile::RegenerateTexture() {
-    this->tile_texture_ = GenerateTileTexture(this->blocks);
-}
-
-Texture2D GenerateTileTexture(std::vector<World::BlockTypes>& blocks) {
-    Image image_canvas = GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK);
+void World::Tile::GenerateTilePixels()
+{
     for (uint16_t y_position = 0; y_position < World::Tile::kTileY; y_position++) {
         for (uint16_t x_position = 0; x_position < World::Tile::kTileX; x_position++) {
             switch (blocks.at((y_position * World::Tile::kTileY) + x_position)){
                 case World::kBlockAir:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, SKYBLUE);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, SKYBLUE);
                     break;
                 case World::kBlockDirt:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, BROWN);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, BROWN);
                     break;
                 case World::kBlockGrass:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, GREEN);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, GREEN);
                     break;
                 case World::kBlockFood:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, RED);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, RED);
                     break;
                 case World::kBlockStone:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, DARKGRAY);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, DARKGRAY);
                     break;
                 case World::kBlockWater:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, BLUE);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, BLUE);
                     break;
                 case World::kBlockSand:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, YELLOW);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, YELLOW);
                     break;
                 case World::kBlockUnderground:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, DARKBROWN);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, DARKBROWN);
                     break;
                 case World::kBlockStockpiledFood:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, RED);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, RED);
                     break;
                 default:
-                    ImageDrawPixel(&image_canvas, x_position, y_position, PURPLE);
+                    ImageDrawPixel(this->tile_pixels, x_position, y_position, PURPLE);
                     break;
             }
         }
     }
-    Texture2D texture = LoadTextureFromImage(image_canvas);
-    UnloadImage(image_canvas);
-    return texture;
+};
+
+
+void World::Tile::GenerateTileTexture(bool update) {
+    if (!update) {tile_texture_ = LoadTextureFromImage(*tile_pixels);}
+    else { UpdateTexture(tile_texture_, tile_pixels->data); }
 }
 
 void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
@@ -107,7 +106,8 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size) {
             //FIXME: This happening as part of the loop is not efficient, but otherwise we need a way of
             //       regenerating the texture if/when food crosses a tile boundary.
             Tile* tile = PosToTile(x_pos, y_pos);
-            tile->RegenerateTexture();
+            tile->GenerateTilePixels();
+            tile->GenerateTileTexture(true);
         }
     }
 }
@@ -225,7 +225,8 @@ World::World() {
     for (std::vector<Tile>& row : world_tiles_) {
         for (Tile& tile : row) {
             //tile.tile_texture_ = GenerateTileTexture(tile.blocks);
-            tile.RegenerateTexture();
+            tile.GenerateTilePixels();
+            tile.GenerateTileTexture();
 
             x_tile_count++;
         }
@@ -409,4 +410,9 @@ std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination) {
     }
 
     return results;
+}
+
+World::Tile::~Tile()
+{
+    UnloadImage(*tile_pixels);
 }
