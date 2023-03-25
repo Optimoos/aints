@@ -65,8 +65,7 @@ void move_neuron::tick(float threshold)
           // FIXME: add == operator for PosXY
           if (!brain.path_to_target.empty())
           {
-            if ((brain.current_position.x == brain.path_to_target.back().x) &&
-                (brain.current_position.y == brain.path_to_target.back().y))
+            if (brain.current_position == brain.path_to_target.back())
             {
               brain.path_to_target.pop_back();
             }
@@ -124,7 +123,7 @@ void move_neuron::tick(float threshold)
         break;
     }
 
-    if ((newXY.x != 0) && (newXY.y != 0))
+    if (newXY != World::PosXY{0,0})
     {
       World::BlockTypes block= brain.world->GetBlockAtPos(newXY);
       if (block == World::BlockTypes::kBlockUnderground)
@@ -160,7 +159,7 @@ void move_neuron::tick(float threshold)
 void move_neuron::MoveOneTowards(World::PosXY &origin,
                                  World::PosXY &destination)
 {
-  if (!(origin.x == destination.x && origin.y == destination.y))
+  if (!(origin == destination))
   {
     // std::cout << "Next position origin: " << origin.x << ", " << origin.y <<
     // std::endl; std::cout << "Next position destination: " << destination.x <<
@@ -208,8 +207,7 @@ void detect_food_neuron::tick(float threshold)
     this->brain.sensed_food.position= this->brain.world->FindNearestBlockOfType(
         this->brain.current_position, World::BlockTypes::kBlockFood,
         static_cast<uint64_t>(distance));
-    if ((brain.sensed_food.position.x != 0) &&
-        (brain.sensed_food.position.y != 0))
+    if (brain.sensed_food.position != World::PosXY{0,0})
     {
       // FIXME: Probably don't want arbitrary expiry times here
       this->brain.sensed_food.StartTimer(10000);
@@ -334,8 +332,7 @@ void task_neuron::tick(float threshold)
         {
           this->brain.current_task= Brain::kTaskDeliveringFood;
         }
-        if ((this->brain.current_destination.position.x == 0) &&
-            (this->brain.current_destination.position.y == 0))
+        if (this->brain.current_destination.position == World::PosXY{0,0})
         {
           this->brain.current_task= Brain::kTaskSearchingFood;
         }
