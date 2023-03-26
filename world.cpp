@@ -18,11 +18,12 @@ World::BlockTypes World::GetBlockAtPos(PosXY blockpos)
   return tile->blocks.at(y_loc * Tile::kTileY + x_loc);
 }
 
-void World::SetBlockAtPos(PosXY position, World::BlockTypes type)
+void World::SetBlockAtPos(PosXY const position, World::BlockTypes const type)
 {
   const int64_t x_loc= position.x % Tile::kTileX;
   const int64_t y_loc= position.y % Tile::kTileY;
   Tile *tile= PosToTile(position.x, position.y);
+  std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
   tile->blocks.at(y_loc * Tile::kTileY + x_loc)= type;
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
@@ -125,12 +126,6 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size)
     for (int64_t y= y_pos - y_range; y <= y_pos + y_range; y++)
     {
       SetBlockAtPos(PosXY{x, y}, kBlockFood);
-      // FIXME: This happening as part of the loop is not efficient, but
-      // otherwise we need a way of
-      //        regenerating the texture if/when food crosses a tile boundary.
-      Tile *tile= PosToTile(x_pos, y_pos);
-      tile->GenerateTilePixels();
-      tile->GenerateTileTexture(true);
     }
   }
 }
@@ -304,8 +299,6 @@ World::World()
   }
 }
 
-World::~World() {}
-
 bool World::XBlocksAway(PosXY center, PosXY block, uint16_t distance)
 {
   int64_t absx= abs(block.x - center.x);
@@ -404,7 +397,7 @@ void World::FindPath(PosXY const origin, PosXY const destination, std::vector<Wo
 
     if (SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED)
     {
-      std::cout << "Search found goal state\n";
+      //std::cout << "Search found goal state\n";
 
       MapSearchNode *node= astarsearch.GetSolutionStart();
 
@@ -443,7 +436,7 @@ void World::FindPath(PosXY const origin, PosXY const destination, std::vector<Wo
     }
 
     // Display the number of loops the search went through
-    std::cout << "SearchSteps : " << SearchSteps << "\n";
+    //std::cout << "SearchSteps : " << SearchSteps << "\n";
 
     SearchCount++;
 

@@ -16,3 +16,6 @@
 [submodule "lib/astar-algorithm-cpp"]
 	path = lib/astar-algorithm-cpp
 	url = https://github.com/justinhj/astar-algorithm-cpp.git
+[submodule "lib/googletest"]
+	path = lib/googletest
+	url = https://github.com/google/googletest.git

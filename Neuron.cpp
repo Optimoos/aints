@@ -206,7 +206,6 @@ void detect_food_neuron::tick(float threshold)
       (this->brain.sensed_food.Expired()) && (threshold >= this->threshold) &&
       (this->brain.carrying == World::kBlockAir))
   {
-    std::cout << "Food update" << std::endl;
     this->brain.sensed_food.position= this->brain.world->FindNearestBlockOfType(
         this->brain.current_position, World::BlockTypes::kBlockFood,
         static_cast<uint64_t>(distance));
@@ -214,8 +213,8 @@ void detect_food_neuron::tick(float threshold)
     {
       // FIXME: Probably don't want arbitrary expiry times here
       this->brain.sensed_food.StartTimer(10000);
-      std::cout << "Food found: " << this->brain.sensed_food.position.x << ", "
-                << this->brain.sensed_food.position.y << std::endl;
+//      std::cout << "Food found: " << this->brain.sensed_food.position.x << ", "
+//                << this->brain.sensed_food.position.y << std::endl;
       this->brain.current_destination.position=
           this->brain.world->FindNearestBlockOfType(
               this->brain.sensed_food.position,
@@ -229,7 +228,6 @@ void detect_food_neuron::tick(float threshold)
       else
       {
         this->brain.current_destination.SetExpired();
-        std::cout << "Food not one block away!" << std::endl;
       }
       std::cout << "Moving towards: "
                 << this->brain.current_destination.position.x << ", "

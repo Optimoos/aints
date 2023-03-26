@@ -6,3 +6,4 @@ lib/raygui/
 lib/raylib/
 lib/thread-pool/
 lib/astar-algorithm-cpp/
+lib/googletest/

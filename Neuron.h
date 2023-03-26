@@ -56,7 +56,7 @@ class move_neuron : public Neuron
   void RandomMovement(World::PosXY &original_location,
                       World::PosXY &new_location);
 
-  void move_neuron::GatherNavigate(Brain &brain,World::PosXY &next_coord);
+  void GatherNavigate(Brain &brain,World::PosXY &next_coord);
 
  private:
 };

@@ -150,13 +150,13 @@ int main()
 
     ClearBackground(RAYWHITE);
 
-    for (uint16_t y_tile= 0; y_tile < (world.kWorldY / World::Tile::kTileY);
+    for (uint16_t y_tile= 0 * World::Tile::kTileY; y_tile < World::kWorldY;
          y_tile++)
     {
-      for (uint16_t x_tile= 0; x_tile < (world.kWorldX / World::Tile::kTileX);
+      for (uint16_t x_tile= 0 * World::Tile::kTileX; x_tile < World::kWorldX;
            x_tile++)
       {
-        World::Tile &tile= World::world_tiles_[y_tile][x_tile];
+        World::Tile &tile= *World::PosToTile(x_tile, y_tile);
         DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX),
                     (y_tile * World::Tile::kTileY), WHITE);
       }

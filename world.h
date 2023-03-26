@@ -35,54 +35,48 @@ class World
    public:
     static const uint16_t kTileX{256};
     static const uint16_t kTileY{256};
-    std::vector<World::BlockTypes> blocks;
-    std::vector<float> noise_data_;
-    Texture2D tile_texture_;
+
+    std::vector<World::BlockTypes> blocks{kTileY * kTileX, kBlockAir};
+    std::vector<float> noise_data_{kTileY * kTileX, 0.0f};
+    Texture2D tile_texture_{};
     Image tile_pixels[kTileX * kTileY]{
         GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
 
     void GenerateTilePixels();
-
     void GenerateTileTexture(bool update= false);
 
+    Tile()= default;
     ~Tile();
+    Tile(const Tile &other)= default;
+    Tile &operator=(const Tile &other)= default;
 
    private:
   };
 
   World();
-
-  ~World();
+  ~World()= default;
+  World(const World &other)= default;
+  World &operator=(const World &other)= default;
 
   static BlockTypes GetBlockAtPos(PosXY blockpos);
-
-  //    PosXY FindNearestBlockOfType(BlockTypes);
   PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
-
   void SetBlockAtPos(PosXY position, BlockTypes type);
-
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
                        BlockTypes &type);
-
   bool PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                         BlockTypes &type);
-
   void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
-
   static Tile *PosToTile(int64_t x_pos, int64_t y_pos);
-
-  static std::vector<std::vector<Tile>> world_tiles_;
-
-  bool OneBlockAway(PosXY center, PosXY block);
-
+  static bool OneBlockAway(PosXY center, PosXY block);
   bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
+  static void FindPath(PosXY origin, PosXY destination,
+                       std::vector<PosXY> &results);
 
-  static void FindPath(PosXY origin, PosXY destination, std::vector<PosXY> &results);
-
-  const uint16_t kWorldX{8192};
-  const uint16_t kWorldY{2048};
+  static const uint16_t kWorldX{8192};
+  static const uint16_t kWorldY{2048};
 
  private:
+  static std::vector<std::vector<Tile>> world_tiles_;
 };
 
 void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
@@ -100,16 +94,16 @@ std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
 class MapSearchNode
 {
  public:
-  World::PosXY position{0,0};  // the (x,y) positions of the node
+  World::PosXY position{0, 0};  // the (x,y) positions of the node
   World::BlockTypes block_type;
 
-  MapSearchNode() {block_type = World::GetBlockAtPos(position);}
+  MapSearchNode() { block_type= World::GetBlockAtPos(position); }
 
   MapSearchNode(int64_t px, int64_t py)
   {
     position.x= px;
     position.y= py;
-    block_type = World::GetBlockAtPos(position);
+    block_type= World::GetBlockAtPos(position);
   }
 
   bool operator==(const MapSearchNode &rhs) const
@@ -118,17 +112,12 @@ class MapSearchNode
   }
 
   inline float GoalDistanceEstimate(MapSearchNode &nodeGoal);
-
   inline bool IsGoal(MapSearchNode &nodeGoal);
-
   inline bool GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
                             MapSearchNode *parent_node);
-
   inline float GetCost(MapSearchNode &successor);
-
   inline bool IsSameState(MapSearchNode &rhs);
-
-  inline void PrintNodeInfo();
+  inline void PrintNodeInfo(){};
 };
 
 bool MapSearchNode::IsSameState(MapSearchNode &rhs)
@@ -144,20 +133,13 @@ bool MapSearchNode::IsSameState(MapSearchNode &rhs)
   }
 }
 
-void MapSearchNode::PrintNodeInfo()
-{
-  char str[100];
-  sprintf(str, "Node position : (%d,%d)\n", position.x, position.y);
-
-  std::cout << str;
-}
-
 // Here's the heuristic function that estimates the distance from a Node
 // to the Goal.
 
 float MapSearchNode::GoalDistanceEstimate(MapSearchNode &nodeGoal)
 {
-  return abs(position.x - nodeGoal.position.x) + abs(position.y - nodeGoal.position.y);
+  return abs(position.x - nodeGoal.position.x) +
+         abs(position.y - nodeGoal.position.y);
 }
 
 bool MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
@@ -177,8 +159,7 @@ bool MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
 bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
                                   MapSearchNode *parent_node)
 {
-
-  World::PosXY parent_position{-1,-1};
+  World::PosXY parent_position{-1, -1};
 
   if (parent_node)
   {
@@ -199,7 +180,7 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
     if (World::GetBlockAtPos(World::PosXY{x, y}) == World::kBlockUnderground)
     {
       NewNode= MapSearchNode(x, y);
-        astarsearch->AddSuccessor(NewNode);
+      astarsearch->AddSuccessor(NewNode);
     }
   }
 
@@ -216,16 +197,17 @@ float MapSearchNode::GetCost(MapSearchNode &successor)
   // constant cost
   float cost{99.0f};
   World::BlockTypes successor_block= World::GetBlockAtPos(successor.position);
-  switch (successor_block) {
+  switch (successor_block)
+  {
     case World::kBlockUnderground:
-      cost = 1.0f;
+      cost= 1.0f;
       break;
     case World::kBlockFood:
-      cost = 10.0f;
+      cost= 10.0f;
       break;
     case World::kBlockDirt:
-        cost = 50.0f;
-        break;
+      cost= 50.0f;
+      break;
     default:
       break;
   }
