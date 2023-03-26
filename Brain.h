@@ -34,6 +34,9 @@ class Brain
       if (duration.count() >= this->expiry)
       {
         this->expired= true;
+        std::cout << "Timer expired on block: " << this->block
+                  << " at position: " << this->position.x << ", "
+                  << this->position.y << std::endl;
       }
       return this->expired;
     };

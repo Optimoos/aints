@@ -7,22 +7,46 @@ void move_neuron::RandomMovement(World::PosXY &original_location,
   new_location.y= original_location.y + ((std::rand() % 3) - 1);
 }
 
-void move_neuron::GenerateAStarPath(World::PosXY &current_position,
-                                    World::PosXY &destination, World &world,
-                                    std::vector<World::PosXY> &path_vector)
+void move_neuron::GatherNavigate(Brain &brain, World::PosXY &next_coord)
 {
-  // FIXME: There's got to be a more elegant way of having A* find a partial
-  // path rather than having to do
-  //        this hack to find an underground block near the destination
-  World::PosXY nearest_underground=
-      world.FindNearestBlockOfType(destination, World::kBlockUnderground, 10);
-  std::vector<World::PosXY> temp_route=
-      world.FindPath(current_position, nearest_underground);
-  path_vector.clear();
-  for (std::vector<World::PosXY>::reverse_iterator i= temp_route.rbegin();
-       i != temp_route.rend(); ++i)
+  // Make sure we arrived at last coordinate
+  if (!brain.path_to_target.empty())
   {
-    path_vector.push_back(*i);
+    World::PosXY position_to_check= *brain.path_to_target.begin();
+    while (brain.current_position == position_to_check)
+    {
+      brain.path_to_target.erase(brain.path_to_target.begin());
+      if (!brain.path_to_target.empty())
+      {
+        position_to_check= *brain.path_to_target.begin();
+      }
+      else
+      {
+        break;
+      }
+    }
+  }
+  // If path is empty, generate a new one
+  if (brain.path_to_target.empty())
+  {
+    World::FindPath(brain.current_position,
+                          brain.current_destination.position,
+                          brain.path_to_target);
+    // Make sure path generation didn't fail
+    // Remove our current position
+    while (!brain.path_to_target.empty() &&
+           (brain.current_position == *brain.path_to_target.begin()))
+    {
+      brain.path_to_target.erase(brain.path_to_target.begin());
+    }
+  }
+  if (!brain.path_to_target.empty())
+  {
+    next_coord= *brain.path_to_target.begin();
+  }
+  else
+  {
+    brain.current_task= Brain::kTaskWandering;
   }
 }
 
@@ -61,61 +85,34 @@ void move_neuron::tick(float threshold)
         // Make sure our sensed destination hasn't expired
         if (!brain.sensed_food.Expired())
         {
-          // Make sure we arrived at last coordinate
-          // FIXME: add == operator for PosXY
-          if (!brain.path_to_target.empty())
-          {
-            if (brain.current_position == brain.path_to_target.back())
-            {
-              brain.path_to_target.pop_back();
-            }
-          }
-          // If path is empty, generate a new one
-          if (brain.path_to_target.empty())
-          {
-            // Current destination is set to an air block near the detected food
-            // block
-            GenerateAStarPath(brain.current_position,
-                              brain.current_destination.position, *brain.world,
-                              brain.path_to_target);
-          }
-          // Make sure path generation didn't fail
-          if (!brain.path_to_target.empty())
-          {
-            newXY= brain.path_to_target.back();
-          }
-          else
-          {
-            brain.current_task= Brain::kTaskWandering;
-          }
+          GatherNavigate(brain, newXY);
         }
         break;
       case Brain::kTaskDeliveringFood:
+
         if (brain.current_destination.Expired() &&
             (brain.carrying == World::kBlockAir))
         {
           brain.current_task= Brain::kTaskWandering;
           break;
         }
-        if (!brain.path_to_target.empty())
+
+        if (this->brain.current_destination.Expired())
         {
-          if (brain.current_position == brain.path_to_target.back())
-          {
-            brain.path_to_target.pop_back();
-          }
-        }
-        if (brain.path_to_target.empty())
-        {
-          GenerateAStarPath(brain.current_position, brain.dropoff_position,
-                            *brain.world, brain.path_to_target);
-        }
-        if (!brain.path_to_target.empty())
-        {
-          newXY= brain.path_to_target.back();
+          // FIXME: Arbitrarily searching 20 blocks around the stockpile, should be
+          // dynamic
+//          this->brain.dropoff_position= this->brain.world->FindNearestBlockOfType(
+//              this->brain.food_stockpile, World::kBlockUnderground, 20);
+          this->brain.current_destination.position=
+              this->brain.world->FindNearestBlockOfType(
+                  this->brain.food_stockpile, World::kBlockUnderground, 2);
+          std::cout << "Delivering to: " << this->brain.current_destination.position.x << ", "
+                    << this->brain.current_destination.position.y << std::endl;
+          this->brain.current_destination.StartTimer(10000);
         }
         else
         {
-          brain.current_task= Brain::kTaskWandering;
+          GatherNavigate(brain, newXY);
         }
         break;
       default:
@@ -123,7 +120,7 @@ void move_neuron::tick(float threshold)
         break;
     }
 
-    if (newXY != World::PosXY{0,0})
+    if (newXY != World::PosXY{0, 0} && newXY != brain.current_position)
     {
       World::BlockTypes block= brain.world->GetBlockAtPos(newXY);
       if (block == World::BlockTypes::kBlockUnderground)
@@ -131,7 +128,6 @@ void move_neuron::tick(float threshold)
         // std::cout << "Path info: " << brain.current_position.x << ", " <<
         // brain.current_position.y << " New: " << newXY.x << ", " << newXY.y <<
         // " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
-
         MoveOneTowards(brain.current_position, newXY);
       }
       else
@@ -148,6 +144,11 @@ void move_neuron::tick(float threshold)
         // brain.world->FindNearestBlockOfType(brain.current_position,
         // World::kBlockUnderground, 3);
       }
+    }
+    else if (newXY == brain.current_position)
+    {
+      std::cout << "Ant is trying to move to the position it's already in"
+                << std::endl;
     }
     else
     {
@@ -171,7 +172,8 @@ void move_neuron::MoveOneTowards(World::PosXY &origin,
     World::PosXY next{};
     next.x= round(origin.x + directionX);
     next.y= round(origin.y + directionY);
-    std::swap(origin, next);
+    // std::swap(origin, next);
+    origin= next;
     if ((next.x < 0) || (next.y < 0))
     {
       std::cout << "STOP HERE WTF IS GOING ON!" << std::endl;
@@ -201,13 +203,14 @@ void detect_food_neuron::tick(float threshold)
   const float distance= threshold * 500;
 
   if ((this->brain.current_task == Brain::kTaskSearchingFood) &&
-      (this->brain.sensed_food.Expired()) && (threshold >= this->threshold))
+      (this->brain.sensed_food.Expired()) && (threshold >= this->threshold) &&
+      (this->brain.carrying == World::kBlockAir))
   {
     std::cout << "Food update" << std::endl;
     this->brain.sensed_food.position= this->brain.world->FindNearestBlockOfType(
         this->brain.current_position, World::BlockTypes::kBlockFood,
         static_cast<uint64_t>(distance));
-    if (brain.sensed_food.position != World::PosXY{0,0})
+    if (brain.sensed_food.position != World::PosXY{0, 0})
     {
       // FIXME: Probably don't want arbitrary expiry times here
       this->brain.sensed_food.StartTimer(10000);
@@ -217,7 +220,17 @@ void detect_food_neuron::tick(float threshold)
           this->brain.world->FindNearestBlockOfType(
               this->brain.sensed_food.position,
               World::BlockTypes::kBlockUnderground, static_cast<uint64_t>(20));
-      this->brain.current_destination.StartTimer(10000);
+      if (this->brain.world->OneBlockAway(
+              this->brain.current_destination.position,
+              this->brain.sensed_food.position))
+      {
+        this->brain.current_destination.StartTimer(10000);
+      }
+      else
+      {
+        this->brain.current_destination.SetExpired();
+        std::cout << "Food not one block away!" << std::endl;
+      }
       std::cout << "Moving towards: "
                 << this->brain.current_destination.position.x << ", "
                 << this->brain.current_destination.position.y << std::endl;
@@ -314,6 +327,10 @@ void task_neuron::tick(float threshold)
       case Brain::kTaskSearchingFood:
         // std::cout << "Searching, sensed food: " <<
         // std::to_string(this->brain.sensed_food.Expired()) << std::endl;
+        if (this->brain.carrying == World::kBlockFood)
+        {
+          this->brain.current_task= Brain::kTaskDeliveringFood;
+        }
         if (!this->brain.sensed_food.Expired())
         {
           this->brain.current_task= Brain::kTaskGatheringFood;
@@ -331,8 +348,9 @@ void task_neuron::tick(float threshold)
         if (this->brain.carrying == World::kBlockFood)
         {
           this->brain.current_task= Brain::kTaskDeliveringFood;
+          break;
         }
-        if (this->brain.current_destination.position == World::PosXY{0,0})
+        if (this->brain.current_destination.position == World::PosXY{0, 0})
         {
           this->brain.current_task= Brain::kTaskSearchingFood;
         }
@@ -348,10 +366,6 @@ void task_neuron::tick(float threshold)
         if (this->brain.carrying == World::kBlockAir)
         {
           this->brain.current_task= Brain::kTaskWandering;
-        }
-        else
-        {
-          this->brain.current_destination.position= this->brain.food_stockpile;
         }
         break;
       default:
@@ -428,30 +442,14 @@ void gather_neuron::tick(float threshold)
   if ((threshold > this->threshold) &&
       (this->brain.carrying == World::kBlockFood))
   {
-    if (this->brain.current_destination.Expired())
+    if (this->brain.world->PlaceBlockAtPos(this->brain.current_position,
+                                           this->brain.current_destination.position,
+                                           this->brain.carrying))
     {
-      // FIXME: Arbitrarily searching 20 blocks around the stockpile, should be
-      // dynamic
-      this->brain.dropoff_position= this->brain.world->FindNearestBlockOfType(
-          this->brain.food_stockpile, World::kBlockUnderground, 20);
-      this->brain.current_destination.position= brain.dropoff_position;
-      std::cout << "Delivering to: " << this->brain.dropoff_position.x << ", "
-                << this->brain.dropoff_position.y << std::endl;
-      this->brain.current_destination.StartTimer(10000);
-    }
-    if (this->brain.world->OneBlockAway(this->brain.current_position,
-                                        this->brain.dropoff_position))
-    {
-      if (this->brain.world->PlaceBlockAtPos(this->brain.current_position,
-                                             this->brain.dropoff_position,
-                                             this->brain.carrying))
-      {
-        this->brain.carrying= World::kBlockAir;
-        this->brain.current_destination.SetExpired();
-        this->brain.path_to_target.clear();
-        this->brain.current_task= Brain::kTaskWandering;
-        std::cout << "Dropped off food" << std::endl;
-      }
+      this->brain.current_task= Brain::kTaskWandering;
+      this->brain.current_destination.SetExpired();
+      this->brain.path_to_target.clear();
+      std::cout << "Dropped off food" << std::endl;
     }
   }
 }

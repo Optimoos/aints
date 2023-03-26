@@ -140,7 +140,7 @@ void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size)
 World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
                                            uint64_t range)
 {
-  for (int64_t r= 1; r < range; r++)
+  for (int64_t r= 1; r <= range; r++)
   {
     bool points_found= false;
 
@@ -151,7 +151,7 @@ World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
       for (int64_t y= std::max(center.y - y_range, (int64_t)0);
            y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
       {
-        if (type == GetBlockAtPos(PosXY{x, y}))
+        if (type == GetBlockAtPos(PosXY{x, y}) && (PosXY{x,y} != center))
         {
           return PosXY{x, y};
         }
@@ -335,7 +335,7 @@ bool World::OneBlockAway(PosXY center, PosXY block)
   }
 }
 
-std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination)
+void World::FindPath(PosXY const origin, PosXY const destination, std::vector<World::PosXY> &results)
 {
   AStarSearch<MapSearchNode> astarsearch;
 
@@ -343,19 +343,15 @@ std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination)
 
   const unsigned int NumSearches= 1;
 
-  std::vector<World::PosXY> results;
-
   while (SearchCount < NumSearches)
   {
     // Create a start state
     MapSearchNode nodeStart{};
-    nodeStart.x= origin.x;
-    nodeStart.y= origin.y;
+    nodeStart.position= origin;
 
     // Define the goal state
     MapSearchNode nodeEnd{};
-    nodeEnd.x= destination.x;
-    nodeEnd.y= destination.y;
+    nodeEnd.position= destination;
 
     // Set Start and goal states
 
@@ -417,23 +413,26 @@ std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination)
 #endif
       int steps= 0;
 
-      node->PrintNodeInfo();
-      results.push_back(World::PosXY{node->x, node->y});
+      //node->PrintNodeInfo();
+        node->block_type= World::GetBlockAtPos(node->position);
+      results.push_back(node->position);
       for (;;)
       {
         node= astarsearch.GetSolutionNext();
+
 
         if (!node)
         {
           break;
         }
 
-        node->PrintNodeInfo();
-        results.push_back(World::PosXY{node->x, node->y});
+        node->block_type= World::GetBlockAtPos(node->position);
+
+        results.push_back(node->position);
         steps++;
       };
 
-      std::cout << "Solution steps " << steps << std::endl;
+      //std::cout << "Solution steps " << steps << std::endl;
 
       // Once you're done with the solution you can free the nodes up
       astarsearch.FreeSolutionNodes();
@@ -450,15 +449,13 @@ std::vector<World::PosXY> World::FindPath(PosXY origin, PosXY destination)
 
     astarsearch.EnsureMemoryFreed();
   }
-
-  return results;
 }
 
 World::Tile::~Tile() { UnloadImage(*tile_pixels); }
 
 // Returns true if block placed successfully, false if it failed
-bool World::PlaceBlockAtPos(PosXY &my_position, PosXY &place_position,
-                            BlockTypes type)
+bool World::PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
+                            BlockTypes &type)
 {
   bool successfully_placed= false;
   // Check if we're within reach
@@ -472,6 +469,7 @@ bool World::PlaceBlockAtPos(PosXY &my_position, PosXY &place_position,
         type= kBlockStockpiledFood;
       }
       this->SetBlockAtPos(place_position, type);
+      type = kBlockAir;
       successfully_placed= true;
     }
   }
@@ -483,7 +481,7 @@ bool World::PlaceBlockAtPos(PosXY &my_position, PosXY &place_position,
 }
 
 // Returns true if block picked up successfully, false if it failed
-bool World::PickupBlockAtPos(PosXY &my_position, PosXY &place_position,
+bool World::PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                              BlockTypes &type)
 {
   bool successfully_picked= false;

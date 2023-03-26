@@ -61,10 +61,10 @@ class World
 
   void SetBlockAtPos(PosXY position, BlockTypes type);
 
-  bool PlaceBlockAtPos(PosXY &my_position, PosXY &place_position,
-                       BlockTypes type);
+  bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
+                       BlockTypes &type);
 
-  bool PickupBlockAtPos(PosXY &my_position, PosXY &place_position,
+  bool PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                         BlockTypes &type);
 
   void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
@@ -77,7 +77,7 @@ class World
 
   bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
 
-  std::vector<PosXY> FindPath(PosXY origin, PosXY destination);
+  static void FindPath(PosXY origin, PosXY destination, std::vector<PosXY> &results);
 
   const uint16_t kWorldX{8192};
   const uint16_t kWorldY{2048};
@@ -100,15 +100,21 @@ std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
 class MapSearchNode
 {
  public:
-  int x;  // the (x,y) positions of the node
-  int y;
+  World::PosXY position{0,0};  // the (x,y) positions of the node
+  World::BlockTypes block_type;
 
-  MapSearchNode() { x= y= 0; }
+  MapSearchNode() {block_type = World::GetBlockAtPos(position);}
 
-  MapSearchNode(int px, int py)
+  MapSearchNode(int64_t px, int64_t py)
   {
-    x= px;
-    y= py;
+    position.x= px;
+    position.y= py;
+    block_type = World::GetBlockAtPos(position);
+  }
+
+  bool operator==(const MapSearchNode &rhs) const
+  {
+    return position == rhs.position;
   }
 
   inline float GoalDistanceEstimate(MapSearchNode &nodeGoal);
@@ -128,7 +134,7 @@ class MapSearchNode
 bool MapSearchNode::IsSameState(MapSearchNode &rhs)
 {
   // same state in a maze search is simply when (x,y) are the same
-  if ((x == rhs.x) && (y == rhs.y))
+  if (position == rhs.position)
   {
     return true;
   }
@@ -141,7 +147,7 @@ bool MapSearchNode::IsSameState(MapSearchNode &rhs)
 void MapSearchNode::PrintNodeInfo()
 {
   char str[100];
-  sprintf(str, "Node position : (%d,%d)\n", x, y);
+  sprintf(str, "Node position : (%d,%d)\n", position.x, position.y);
 
   std::cout << str;
 }
@@ -151,12 +157,12 @@ void MapSearchNode::PrintNodeInfo()
 
 float MapSearchNode::GoalDistanceEstimate(MapSearchNode &nodeGoal)
 {
-  return abs(x - nodeGoal.x) + abs(y - nodeGoal.y);
+  return abs(position.x - nodeGoal.position.x) + abs(position.y - nodeGoal.position.y);
 }
 
 bool MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
 {
-  if ((x == nodeGoal.x) && (y == nodeGoal.y))
+  if (position == nodeGoal.position)
   {
     return true;
   }
@@ -171,49 +177,30 @@ bool MapSearchNode::IsGoal(MapSearchNode &nodeGoal)
 bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
                                   MapSearchNode *parent_node)
 {
-  int parent_x= -1;
-  int parent_y= -1;
+
+  World::PosXY parent_position{-1,-1};
 
   if (parent_node)
   {
-    parent_x= parent_node->x;
-    parent_y= parent_node->y;
+    parent_position= parent_node->position;
   }
 
   MapSearchNode NewNode;
 
-  // push each possible move except allowing the search to go backwards
+  // push each possible move
 
-  if ((World::GetBlockAtPos(World::PosXY{x - 1, y}) ==
-       World::kBlockUnderground) &&
-      !((parent_x == x - 1) && (parent_y == y)))
-  {
-    NewNode= MapSearchNode(x - 1, y);
-    astarsearch->AddSuccessor(NewNode);
-  }
+  int dx[8]= {-1, -1, -1, 0, 0, 1, 1, 1};
+  int dy[8]= {-1, 0, 1, -1, 1, -1, 0, 1};
 
-  if ((World::GetBlockAtPos(World::PosXY{x, y - 1}) ==
-       World::kBlockUnderground) &&
-      !((parent_x == x) && (parent_y == y - 1)))
+  for (int i= 0; i < 8; i++)
   {
-    NewNode= MapSearchNode(x, y - 1);
-    astarsearch->AddSuccessor(NewNode);
-  }
-
-  if ((World::GetBlockAtPos(World::PosXY{x + 1, y}) ==
-       World::kBlockUnderground) &&
-      !((parent_x == x + 1) && (parent_y == y)))
-  {
-    NewNode= MapSearchNode(x + 1, y);
-    astarsearch->AddSuccessor(NewNode);
-  }
-
-  if ((World::GetBlockAtPos(World::PosXY{x, y + 1}) ==
-       World::kBlockUnderground) &&
-      !((parent_x == x) && (parent_y == y + 1)))
-  {
-    NewNode= MapSearchNode(x, y + 1);
-    astarsearch->AddSuccessor(NewNode);
+    int x= position.x + dx[i];
+    int y= position.y + dy[i];
+    if (World::GetBlockAtPos(World::PosXY{x, y}) == World::kBlockUnderground)
+    {
+      NewNode= MapSearchNode(x, y);
+        astarsearch->AddSuccessor(NewNode);
+    }
   }
 
   return true;
@@ -227,7 +214,22 @@ float MapSearchNode::GetCost(MapSearchNode &successor)
 {
   // FIXME: We only support a single allowable block initially so we return a
   // constant cost
-  return (float)1.0f;
+  float cost{99.0f};
+  World::BlockTypes successor_block= World::GetBlockAtPos(successor.position);
+  switch (successor_block) {
+    case World::kBlockUnderground:
+      cost = 1.0f;
+      break;
+    case World::kBlockFood:
+      cost = 10.0f;
+      break;
+    case World::kBlockDirt:
+        cost = 50.0f;
+        break;
+    default:
+      break;
+  }
+  return cost;
 }
 
 #endif

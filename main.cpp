@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
-int main(void)
+int main()
 {
   // Initialization
   //--------------------------------------------------------------------------------------
@@ -28,10 +28,12 @@ int main(void)
 
   entt::registry registry;
 
+  bool paused{false};
+
   for (int i= 0; i < 1; i++)
   {
     auto entity= registry.create();
-    aints *ant1= new aints(world);
+    auto *ant1= new aints(world);
     // movementNeuron mn(ant1);
     // ant1.addNeuron();
     ant1->setId(i);
@@ -65,8 +67,6 @@ int main(void)
   camera.zoom= 1.0f;
 
   SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
-  //--------------------------------------------------------------------------------------
-  bool Button000Pressed= false;
 
   // Main game loop
   while (!WindowShouldClose())  // Detect window close button or ESC key
@@ -92,8 +92,13 @@ int main(void)
       if ((camera_position.y + screenHeight) < world.kWorldY)
         camera_position.y+= 1;
     }
+    if (IsKeyReleased(KEY_P))
+    {
+      paused= !paused;
+    }
 
-    camera.zoom+= ((float)GetMouseWheelMove() * 0.05f);
+    //FIXME: Camera zoom should center on mouse position
+    camera.zoom+= ((float)GetMouseWheelMove() * 0.1f);
 
     if (camera.zoom > 3.0f)
       camera.zoom= 3.0f;
@@ -157,16 +162,25 @@ int main(void)
       }
     }
 
-    // DrawText("Congrats! You created your first window!", 190, 200, 20,
-    // LIGHTGRAY);
-
     Brain::TaskType debug_task_record{};
-
+    World::PosXY debug_ant_location{};
+    World::PosXY debug_destination{};
+    uint64_t debug_ant_path_length{};
+    World::BlockTypes debug_block_type{};
+    World::PosXY debug_sensed_food{};
     for (auto entity : antview)
     {
       auto &anAnt= antview.get<aints *>(entity);
-      anAnt->tick();
+      if (!paused)
+      {
+        anAnt->tick();
+      }
+      debug_ant_location= anAnt->GetPosition();
+      debug_destination= anAnt->brain.current_destination.position;
       debug_task_record= anAnt->brain.current_task;
+      debug_ant_path_length= anAnt->brain.path_to_target.size();
+      debug_block_type= anAnt->brain.carrying;
+      debug_sensed_food= anAnt->brain.sensed_food.position;
       // No need to draw if the ant is not on camera
       if ((camera_position.x < anAnt->getX() <
            (camera_position.x + screenWidth)) &&
@@ -174,10 +188,9 @@ int main(void)
            (camera_position.y + screenHeight)))
       {
         // DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
-        DrawRectangle(anAnt->getX(), anAnt->getY(), 2, 2, BLACK);
+        DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
       }
     }
-
     // raygui: controls drawing
     //----------------------------------------------------------------------------------
     // Button000Pressed = GuiButton((Rectangle){ 430, 276, 120, 24 }, "SAMPLE
@@ -190,9 +203,18 @@ int main(void)
     std::string debug_text=
         std::string("Cam X: ") + std::to_string(camera_position.x) +
         std::string("; Y: ") + std::to_string(camera_position.y) +
-        std::string(" Action: ") + std::to_string(debug_task_record);
+        std::string(" Action: ") + std::to_string(debug_task_record) +
+        std::string(" Position: ") + std::to_string(debug_ant_location.x) +
+        std::string(", ") + std::to_string(debug_ant_location.y) +
+        std::string(" Destination: ") + std::to_string(debug_destination.x) +
+        std::string(", ") + std::to_string(debug_destination.y) +
+        std::string(" Sensed Food: ") + std::to_string(debug_sensed_food.x) +
+        std::string(", ") + std::to_string(debug_sensed_food.y) +
+        std::string(" Path Length: ") + std::to_string(debug_ant_path_length) +
+        std::string(" Block Type: ") + std::to_string(debug_block_type);
     DrawText(debug_text.c_str(), 10, 40, 10, RED);
     EndDrawing();
+
     //----------------------------------------------------------------------------------
   }
 

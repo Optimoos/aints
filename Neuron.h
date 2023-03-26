@@ -56,9 +56,7 @@ class move_neuron : public Neuron
   void RandomMovement(World::PosXY &original_location,
                       World::PosXY &new_location);
 
-  void move_neuron::GenerateAStarPath(World::PosXY &current_position,
-                                      World::PosXY &destination, World &world,
-                                      std::vector<World::PosXY> &path_vector);
+  void move_neuron::GatherNavigate(Brain &brain,World::PosXY &next_coord);
 
  private:
 };

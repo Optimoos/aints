@@ -10,7 +10,7 @@ int aints::setId(int newId)
   return this->id;
 }
 
-int aints::getId() { return this->id; }
+int aints::getId() const { return this->id; }
 
 bool aints::updateLocation(int64_t x, int64_t y)
 {
@@ -25,9 +25,11 @@ bool aints::updateLocation(int64_t x, int64_t y)
     return false;
 }
 
-int64_t aints::getX() { return this->brain.current_position.x; }
+int64_t aints::getX() const { return this->brain.current_position.x; }
 
-int64_t aints::getY() { return this->brain.current_position.y; }
+int64_t aints::getY() const { return this->brain.current_position.y; }
+
+World::PosXY aints::GetPosition() const { return this->brain.current_position; }
 
 aints::aints(World &world)
 {
