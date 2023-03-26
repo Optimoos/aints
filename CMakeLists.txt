@@ -3,6 +3,10 @@ project(aiants CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (CMAKE_VERSION VERSION_GREATER "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
         googletest
@@ -13,6 +17,8 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+
+file(GLOB AINTS_FILES "include/*.h" "src/*.cpp")
 add_subdirectory(lib/entt lib/entt/src SYSTEM)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 add_subdirectory(lib/raylib/projects/CMake SYSTEM)
@@ -20,9 +26,9 @@ set(BUILD_RAYGUI_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build raygui examples
 add_subdirectory(lib/raygui/projects/CMake SYSTEM)
 set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE)
 add_subdirectory(lib/FastNoise2 SYSTEM)
-include_directories(SYSTEM lib/thread-pool lib/astar-algorithm-cpp/cpp)
+include_directories(SYSTEM include src lib/thread-pool lib/astar-algorithm-cpp/cpp)
 set(SOURCES main.cpp)
-add_executable(aiants main.cpp aints.cpp aints.h world.cpp world.h neuron.cpp neuron.h Brain.cpp Brain.h)
+add_executable(aiants main.cpp ${AINTS_FILES})
 
 #add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} raylib raygui EnTT::EnTT FastNoise)
@@ -33,8 +39,8 @@ enable_testing()
 
 add_executable(
         aints_test
-        aints_test.cpp
-        world.cpp
+        src/tests/aints_test.cpp
+        ${AINTS_FILES}
 )
 target_link_libraries(
         aints_test
