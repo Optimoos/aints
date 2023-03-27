@@ -53,11 +53,15 @@ class World
 
     std::vector<World::BlockTypes> blocks{kTileX * kTileY};
     std::vector<float> noise_data_{kTileX * kTileY};
-    Image tile_pixels[kTileX * kTileY]
-        {GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
-    Texture2D tile_texture_{LoadTextureFromImage(*tile_pixels)};
+//    Image tile_pixels[kTileX * kTileY]
+//        {GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
+    std::shared_ptr<Image> tile_pixels= std::make_shared<Image>(GenImageColor(World::Tile::kTileX, World::Tile::kTileY, GREEN));
+    //std::shared_ptr<Color[]> tile_pixels= std::make_shared<Color[World::Tile::kTileX * World::Tile::kTileY]>();
+    //Texture2D tile_texture_{LoadTextureFromImage(*tile_pixels)};
+    std::shared_ptr<Texture2D> tile_texture_{std::make_shared<Texture2D>(LoadTextureFromImage(*tile_pixels))};
 
     void GenerateTilePixels();
+    void GenerateTilePixels(Color color);
     void GenerateTileTexture(bool update= false);
 
     void NoiseToBlock();

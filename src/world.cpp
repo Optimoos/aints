@@ -61,6 +61,17 @@ std::shared_ptr<World::Tile> World::PosToTile(PosXY position, World *world)
   return world->GetTile(position.ToTileInt());
 }
 
+void World::Tile::GenerateTilePixels(Color color)
+{
+  for (uint16_t y_position= 0; y_position < World::Tile::kTileY; y_position++)
+  {
+    for (uint16_t x_position= 0; x_position < World::Tile::kTileX; x_position++)
+    {
+      ImageDrawPixel(tile_pixels.get(), x_position, y_position, color);
+    }
+  }
+}
+
 void World::Tile::GenerateTilePixels()
 {
   for (uint16_t y_position= 0; y_position < World::Tile::kTileY; y_position++)
@@ -70,34 +81,34 @@ void World::Tile::GenerateTilePixels()
       switch (blocks.at(World::PosXY{x_position, y_position}.XYTo16Bit()))
       {
         case World::kBlockAir:
-          ImageDrawPixel(tile_pixels, x_position, y_position, SKYBLUE);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, SKYBLUE);
           break;
         case World::kBlockDirt:
-          ImageDrawPixel(tile_pixels, x_position, y_position, BROWN);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, BROWN);
           break;
         case World::kBlockGrass:
-          ImageDrawPixel(tile_pixels, x_position, y_position, GREEN);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, GREEN);
           break;
         case World::kBlockFood:
-          ImageDrawPixel(tile_pixels, x_position, y_position, RED);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, RED);
           break;
         case World::kBlockStone:
-          ImageDrawPixel(tile_pixels, x_position, y_position, DARKGRAY);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, DARKGRAY);
           break;
         case World::kBlockWater:
-          ImageDrawPixel(tile_pixels, x_position, y_position, BLUE);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, BLUE);
           break;
         case World::kBlockSand:
-          ImageDrawPixel(tile_pixels, x_position, y_position, YELLOW);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, YELLOW);
           break;
         case World::kBlockUnderground:
-          ImageDrawPixel(tile_pixels, x_position, y_position, DARKBROWN);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, DARKBROWN);
           break;
         case World::kBlockStockpiledFood:
-          ImageDrawPixel(tile_pixels, x_position, y_position, RED);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, RED);
           break;
         default:
-          ImageDrawPixel(tile_pixels, x_position, y_position, PURPLE);
+          ImageDrawPixel(tile_pixels.get(), x_position, y_position, PURPLE);
           break;
       }
     }
@@ -108,11 +119,22 @@ void World::Tile::GenerateTileTexture(bool update)
 {
   if (!update)
   {
-    tile_texture_= LoadTextureFromImage(*tile_pixels);
+    *tile_texture_= LoadTextureFromImage(*tile_pixels);
   }
   else
   {
-    UpdateTexture(tile_texture_, tile_pixels);
+    //UpdateTexture(tile_texture_, tile_pixels);
+    //Image pixels[]{GenImageColor(World::Tile::kTileX, World::Tile::kTileY, RED)};
+//    auto pixels= std::shared_ptr<Image>();
+//        pixels= std::make_shared<Image>(GenImageColor(World::Tile::kTileX,
+//                                                          World::Tile::kTileY, RED));
+
+//    auto pixels= std::make_shared<Image>(GenImageColor(World::Tile::kTileX,
+//                                                       World::Tile::kTileY, RED));
+//
+//    std::shared_ptr<Image> moar_pixels= std::make_shared<Image>(GenImageColor(World::Tile::kTileX, World::Tile::kTileY, GREEN));
+
+    UpdateTexture(*tile_texture_, tile_pixels->data);
   }
 }
 
@@ -172,6 +194,7 @@ World::World()
   world_tiles_.clear();
   world_tiles_.reserve((kWorldX / Tile::kTileX) * (kWorldY / Tile::kTileY));
   BS::thread_pool pool;
+
   for (auto iter= 0; iter < WorldTileRatioY; iter++)
   {
     while (x_tile_count < WorldTileRatioX)
@@ -191,6 +214,28 @@ World::World()
           GenerateTileNoise, std::ref(noise_generator),
           std::ref(new_tile.get()->noise_data_), x_tile_count, y_tile_count);
 
+      //new_tile->GenerateTilePixels(Color{(uint8_t)x_tile_count, 0, 0, 255});
+//      auto img = GenImageColor(Tile::kTileX, Tile::kTileY, RED);
+//      new_tile->tile_pixels= std::make_shared<Image>(img);
+//      auto tex = LoadTextureFromImage(img);
+//      new_tile->tile_texture_= std::make_shared<Texture2D>(tex);
+//
+//      auto img2 = GenImageColor(Tile::kTileX, Tile::kTileY, BLUE);
+//      new_tile->tile_pixels= std::make_shared<Image>(img2);
+
+//      for (int y = 0; y < new_tile->tile_pixels->height; y++) {
+//        for (int x = 0; x < new_tile->tile_pixels->width; x++) {
+//          ImageDrawPixel(new_tile->tile_pixels.get(), y, y, BLUE);
+//          //SetPixelColor(new_tile->tile_pixels->data, x, y, BLUE, new_tile->tile_pixels->format);
+//        }
+//      }
+
+      //UpdateTexture(*new_tile->tile_texture_, new_tile->tile_pixels->data);
+
+      //new_tile->GenerateTilePixels(BLUE);
+
+
+      new_tile->GenerateTileTexture(true);
 
 //      GenerateTileNoise(noise_generator, new_tile->noise_data_, x_tile_count, y_tile_count);
 
@@ -209,9 +254,9 @@ World::World()
   {
 //    while (x_tile_count < (kWorldX / Tile::kTileX))
 //    {
-      tile->NoiseToBlock();
-      tile->GenerateTilePixels();
-      tile->GenerateTileTexture();
+      //tile->NoiseToBlock();
+      //tile->GenerateTilePixels();
+      //tile->GenerateTileTexture(true);
 //      x_tile_count++;
 //    }
 //    y_tile_count++;

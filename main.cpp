@@ -57,7 +57,7 @@ int main()
   auto food1= World::PosXY{4000, 400};
   auto food2= World::PosXY{3700, 400};
 
-  world->AddFood(food1, 5);
+  // world->AddFood(food1, 5);
   // world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
@@ -153,6 +153,7 @@ int main()
 
     ClearBackground(RAYWHITE);
 
+    uint64_t test_count{0};
     for (uint16_t y_tile= 0; y_tile < World::WorldTileRatioY; y_tile++)
     {
       for (uint16_t x_tile= 0; x_tile < World::WorldTileRatioX; x_tile++)
@@ -163,8 +164,9 @@ int main()
         //        World::Tile tile= *World::PosToTile(x_tile *
         //        World::Tile::kTileX, y_tile * World::Tile::kTileY,
         //        world.get());
-        DrawTexture(tile->tile_texture_, x_tile * World::Tile::kTileX,
+        DrawTexture(*tile->tile_texture_, x_tile * World::Tile::kTileX,
                     y_tile * World::Tile::kTileY, WHITE);
+
       }
     }
 
