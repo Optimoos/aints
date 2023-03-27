@@ -214,29 +214,6 @@ World::World()
           GenerateTileNoise, std::ref(noise_generator),
           std::ref(new_tile.get()->noise_data_), x_tile_count, y_tile_count);
 
-      //new_tile->GenerateTilePixels(Color{(uint8_t)x_tile_count, 0, 0, 255});
-//      auto img = GenImageColor(Tile::kTileX, Tile::kTileY, RED);
-//      new_tile->tile_pixels= std::make_shared<Image>(img);
-//      auto tex = LoadTextureFromImage(img);
-//      new_tile->tile_texture_= std::make_shared<Texture2D>(tex);
-//
-//      auto img2 = GenImageColor(Tile::kTileX, Tile::kTileY, BLUE);
-//      new_tile->tile_pixels= std::make_shared<Image>(img2);
-
-//      for (int y = 0; y < new_tile->tile_pixels->height; y++) {
-//        for (int x = 0; x < new_tile->tile_pixels->width; x++) {
-//          ImageDrawPixel(new_tile->tile_pixels.get(), y, y, BLUE);
-//          //SetPixelColor(new_tile->tile_pixels->data, x, y, BLUE, new_tile->tile_pixels->format);
-//        }
-//      }
-
-      //UpdateTexture(*new_tile->tile_texture_, new_tile->tile_pixels->data);
-
-      //new_tile->GenerateTilePixels(BLUE);
-
-
-      new_tile->GenerateTileTexture(true);
-
 //      GenerateTileNoise(noise_generator, new_tile->noise_data_, x_tile_count, y_tile_count);
 
       // FIXME: A vector of shared pointers may not stay consistent if the
@@ -250,17 +227,22 @@ World::World()
 
   pool.wait_for_tasks();
 
+  uint64_t tmp_counter{0};
   for (auto &tile : world_tiles_)
   {
 //    while (x_tile_count < (kWorldX / Tile::kTileX))
 //    {
-      //tile->NoiseToBlock();
-      //tile->GenerateTilePixels();
-      //tile->GenerateTileTexture(true);
+      tile->NoiseToBlock();
+      tile->GenerateTilePixels();
+
+      ImageDrawText(tile->tile_pixels.get(), std::to_string(tmp_counter).c_str(), 20, 20, 20, BLACK);
+
+      tile->GenerateTileTexture(true);
 //      x_tile_count++;
 //    }
 //    y_tile_count++;
 //    x_tile_count= 0;
+      tmp_counter++;
   }
 
 //  for (auto row : world_tiles_)

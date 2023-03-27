@@ -42,7 +42,7 @@ class World
     // such as the one used in the World class.
     uint64_t ToWorldTile() const {return ((y / World::WorldTileRatioY) + (x / WorldTileRatioX));};
     // Turns a PosXY of a tile location into a single integer that can be used to index a 1D array
-    uint64_t TilePosToInt() const {return (( y * World::WorldTileRatioY) + x);};
+    uint64_t TilePosToInt() const {return (( y * World::WorldTileRatioX) + x);};
   };
 
   class Tile
