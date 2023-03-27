@@ -12,19 +12,22 @@ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
 
 World::BlockTypes World::GetBlockAtPos(PosXY blockpos, World *world)
 {
-  const int64_t x_loc= blockpos.x % Tile::kTileX;
-  const int64_t y_loc= blockpos.y % Tile::kTileY;
-  auto tile = PosToTile(blockpos.x, blockpos.y, world);
-  return tile->blocks.at(y_loc * Tile::kTileY + x_loc);
+//  const int64_t x_loc= blockpos.x % Tile::kTileX;
+//  const int64_t y_loc= blockpos.y % Tile::kTileY;
+  auto tile = PosToTile(blockpos, world);
+  return tile->blocks.at(blockpos.ToTileInt());
 }
 
-void World::SetBlockAtPos(PosXY const position, World::BlockTypes const type, World &world)
+void World::SetBlockAtPos(PosXY const &position, World::BlockTypes const type)
 {
-  const int64_t x_loc= position.x % Tile::kTileX;
-  const int64_t y_loc= position.y % Tile::kTileY;
-  auto tile= PosToTile(position.x, position.y, &world);
+//  const int64_t x_loc= position.x % Tile::kTileX;
+//  const int64_t y_loc= position.y % Tile::kTileY;
+  //auto tile= PosToTile(position, &world);
+  auto tile= this->GetTile(position.ToWorldTile());
+
   std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
-  tile->blocks.at(y_loc * Tile::kTileY + x_loc)= type;
+
+  tile->blocks.at(position.ToTileInt())= type;
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
 }
@@ -37,25 +40,25 @@ void World::Tile::NoiseToBlock()
   {
     if ((block > 0.0f) && (block <= 0.1f))
     {
-      blocks.at(location_counter)= World::kBlockStone;
+      this->blocks.at(location_counter)= World::kBlockStone;
     }
     else if ((block > 0.1f) && (block <= 0.5f))
     {
-      blocks.at(location_counter)= World::kBlockDirt;
+      this->blocks.at(location_counter)= World::kBlockDirt;
     }
     else if ((block > 0.5f) && (block <= 1.0f))
     {
-      blocks.at(location_counter)= World::kBlockUnderground;
+      this->blocks.at(location_counter)= World::kBlockUnderground;
     }
     location_counter++;
   }
 }
 
-std::shared_ptr<World::Tile> World::PosToTile(int64_t const x_pos, int64_t const y_pos, World *world)
+std::shared_ptr<World::Tile> World::PosToTile(PosXY position, World *world)
 {
-  const uint16_t x_tile= x_pos / Tile::kTileX;
-  const uint16_t y_tile= y_pos / Tile::kTileY;
-  return world->GetTile(x_tile, y_tile);
+//  const uint16_t x_tile= x_pos / Tile::kTileX;
+//  const uint16_t y_tile= y_pos / Tile::kTileY;
+  return world->GetTile(position.ToTileInt());
 }
 
 void World::Tile::GenerateTilePixels()
@@ -64,42 +67,42 @@ void World::Tile::GenerateTilePixels()
   {
     for (uint16_t x_position= 0; x_position < World::Tile::kTileX; x_position++)
     {
-      switch (blocks.at((y_position * World::Tile::kTileY) + x_position))
+      switch (blocks.at(World::PosXY{x_position, y_position}.XYTo16Bit()))
       {
         case World::kBlockAir:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, SKYBLUE);
+          ImageDrawPixel(tile_pixels, x_position, y_position, SKYBLUE);
           break;
         case World::kBlockDirt:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, BROWN);
+          ImageDrawPixel(tile_pixels, x_position, y_position, BROWN);
           break;
         case World::kBlockGrass:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, GREEN);
+          ImageDrawPixel(tile_pixels, x_position, y_position, GREEN);
           break;
         case World::kBlockFood:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, RED);
+          ImageDrawPixel(tile_pixels, x_position, y_position, RED);
           break;
         case World::kBlockStone:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, DARKGRAY);
+          ImageDrawPixel(tile_pixels, x_position, y_position, DARKGRAY);
           break;
         case World::kBlockWater:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, BLUE);
+          ImageDrawPixel(tile_pixels, x_position, y_position, BLUE);
           break;
         case World::kBlockSand:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, YELLOW);
+          ImageDrawPixel(tile_pixels, x_position, y_position, YELLOW);
           break;
         case World::kBlockUnderground:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, DARKBROWN);
+          ImageDrawPixel(tile_pixels, x_position, y_position, DARKBROWN);
           break;
         case World::kBlockStockpiledFood:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, RED);
+          ImageDrawPixel(tile_pixels, x_position, y_position, RED);
           break;
         default:
-          ImageDrawPixel(this->tile_pixels, x_position, y_position, PURPLE);
+          ImageDrawPixel(tile_pixels, x_position, y_position, PURPLE);
           break;
       }
     }
   }
-};
+}
 
 void World::Tile::GenerateTileTexture(bool update)
 {
@@ -109,18 +112,18 @@ void World::Tile::GenerateTileTexture(bool update)
   }
   else
   {
-    UpdateTexture(tile_texture_, tile_pixels->data);
+    UpdateTexture(tile_texture_, tile_pixels);
   }
 }
 
-void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size, World &world)
+void World::AddFood(PosXY &position, int64_t const size)
 {
-  for (int64_t x= x_pos - size; x <= x_pos + size; x++)
+  for (int64_t x= position.x - size; x <= position.x + size; x++)
   {
-    int64_t y_range= sqrt(pow(size, 2) - pow(x - x_pos, 2));
-    for (int64_t y= y_pos - y_range; y <= y_pos + y_range; y++)
+    int64_t y_range= sqrt(pow(size, 2) - pow(x - position.x, 2));
+    for (int64_t y= position.y - y_range; y <= position.y + y_range; y++)
     {
-      SetBlockAtPos(PosXY{x, y}, kBlockFood, world);
+      this->SetBlockAtPos(position, kBlockFood);
     }
   }
 }
@@ -169,22 +172,27 @@ World::World()
   world_tiles_.clear();
   world_tiles_.reserve((kWorldX / Tile::kTileX) * (kWorldY / Tile::kTileY));
   BS::thread_pool pool;
-  for (auto iter= 0; iter < (kWorldY / Tile::kTileY); iter++)
+  for (auto iter= 0; iter < WorldTileRatioY; iter++)
   {
-    while (x_tile_count < (kWorldX / Tile::kTileX))
+    while (x_tile_count < WorldTileRatioX)
     {
       auto new_tile= std::make_shared<Tile>();
 
-      //new_tile.get()->blocks.resize(Tile::kTileX * Tile::kTileY);
-      new_tile.get()->noise_data_.resize(World::Tile::kTileX *
-                                         World::Tile::kTileY);
+      new_tile->blocks.clear();
+      new_tile->blocks.resize(TileTotalBlocks);
+      new_tile->noise_data_.clear();
+      new_tile->noise_data_.resize(TileTotalBlocks);
+
+//      new_tile.get()->blocks.resize(Tile::kTileX * Tile::kTileY);
+//      new_tile.get()->noise_data_.resize(World::Tile::kTileX *
+//                                         World::Tile::kTileY);
 
       auto noise_future= pool.submit(
           GenerateTileNoise, std::ref(noise_generator),
           std::ref(new_tile.get()->noise_data_), x_tile_count, y_tile_count);
 
-//      std::cout << "Generator: " << x_tile_count << ", " << y_tile_count << std::endl;
-//      GenerateTileNoise(noise_generator, new_tile.get()->noise_data_, x_tile_count, y_tile_count);
+
+//      GenerateTileNoise(noise_generator, new_tile->noise_data_, x_tile_count, y_tile_count);
 
       // FIXME: A vector of shared pointers may not stay consistent if the
       // vector is resized.
@@ -194,20 +202,16 @@ World::World()
     y_tile_count++;
     x_tile_count= 0;
   }
-  std::cout << "Completed initial noise generation." << std::endl;
 
   pool.wait_for_tasks();
 
-  std::cout << "Waiting for pool to close." << std::endl;
-
-  for (auto& tile : world_tiles_)
+  for (auto &tile : world_tiles_)
   {
 //    while (x_tile_count < (kWorldX / Tile::kTileX))
 //    {
       tile->NoiseToBlock();
       tile->GenerateTilePixels();
-      tile->GenerateTileTexture(true);
-      std::cout << "Tile done" << std::endl;
+      tile->GenerateTileTexture();
 //      x_tile_count++;
 //    }
 //    y_tile_count++;
@@ -424,7 +428,7 @@ bool World::PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
       {
         type= kBlockStockpiledFood;
       }
-      this->SetBlockAtPos(place_position, type, *this);
+      this->SetBlockAtPos(place_position, type);
       type = kBlockAir;
       successfully_placed= true;
     }
@@ -449,7 +453,7 @@ bool World::PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
     if (GetBlockAtPos(place_position, this) != World::kBlockUnderground)
     {
       type= GetBlockAtPos(place_position, this);
-      this->SetBlockAtPos(place_position, World::kBlockUnderground, *this);
+      this->SetBlockAtPos(place_position, World::kBlockUnderground);
       successfully_picked= true;
     }
   }

@@ -9,6 +9,9 @@
 class World
 {
  public:
+
+
+
   enum BlockTypes
   {
     kBlockAir,
@@ -28,6 +31,18 @@ class World
     int64_t y{0};
 
     bool operator==(const PosXY &rhs) const { return x == rhs.x && y == rhs.y; }
+
+    // Turns a PosXY into a single integer that can be used to index a 1D array
+    // For coordinates "internal" to a tile, from 0,0 to Tile::kTileX,Tile::kTileY
+    uint64_t XYTo16Bit() const { return (y * Tile::kTileY) + x; }
+    // Turns a PosXY into a single integer that can be used to index a 1D array
+    // such as those used in the Tile class.
+    uint64_t ToTileInt() const { return ((y % World::WorldTileRatioY) * Tile::kTileY) + (x % World::WorldTileRatioX); };
+    // Turns a PosXY into a single integer that can be used to index a 1D array
+    // such as the one used in the World class.
+    uint64_t ToWorldTile() const {return ((y / World::WorldTileRatioY) + (x / WorldTileRatioX));};
+    // Turns a PosXY of a tile location into a single integer that can be used to index a 1D array
+    uint64_t TilePosToInt() const {return (( y * World::WorldTileRatioY) + x);};
   };
 
   class Tile
@@ -36,10 +51,10 @@ class World
     static const uint16_t kTileX{256};
     static const uint16_t kTileY{256};
 
-    std::vector<World::BlockTypes> blocks{kTileY * kTileX, kBlockAir};
-    std::vector<float> noise_data_{kTileY * kTileX, 0.0f};
-    Image tile_pixels[kTileX * kTileY]{
-        GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
+    std::vector<World::BlockTypes> blocks{kTileX * kTileY};
+    std::vector<float> noise_data_{kTileX * kTileY};
+    Image tile_pixels[kTileX * kTileY]
+        {GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
     Texture2D tile_texture_{LoadTextureFromImage(*tile_pixels)};
 
     void GenerateTilePixels();
@@ -62,24 +77,29 @@ class World
 
   static BlockTypes GetBlockAtPos(PosXY blockpos, World *world);
   PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
-  void SetBlockAtPos(PosXY position, BlockTypes type, World &world);
+  void SetBlockAtPos(PosXY const &position, BlockTypes type);
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
                        BlockTypes &type);
   bool PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                         BlockTypes &type);
-  void AddFood(int64_t x_pos, int64_t y_pos, int64_t size, World &world);
+  void AddFood(PosXY &position, int64_t const size);
   // PosToTile returns a tile based on the world coordinates, not tile coordinates
-  static std::shared_ptr<Tile> PosToTile(int64_t const x_pos, int64_t const y_pos, World *world);
+  // It's also useful as it's static
+  static std::shared_ptr<Tile> PosToTile(PosXY position, World *world);
   static bool OneBlockAway(PosXY center, PosXY block);
   bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
   static void FindPath(PosXY origin, PosXY destination,
                        std::vector<PosXY> &results, World *world);
   // GetTile returns a tile based on the tile coordinates, not world coordinates
   // Use PosToTile to get a tile based on world coordinates
-  std::shared_ptr<Tile> GetTile(int64_t const x_tile, int64_t const y_tile) { return world_tiles_.at((y_tile * (World::kWorldY / Tile::kTileY)) + x_tile); }
+  std::shared_ptr<Tile> GetTile(uint64_t index) {  return world_tiles_.at(index); }
 
-  static const uint16_t kWorldX{8192};
-  static const uint16_t kWorldY{2048};
+  static constexpr uint16_t kWorldX{8192};
+  static constexpr uint16_t kWorldY{2048};
+
+  static constexpr int64_t WorldTileRatioY{ World::kWorldY / Tile::kTileY };
+  static constexpr int64_t WorldTileRatioX{ World::kWorldX / Tile::kTileX };
+  static constexpr int64_t TileTotalBlocks{ Tile::kTileX * Tile::kTileY };
 
  private:
   std::vector<std::shared_ptr<Tile>> world_tiles_{};

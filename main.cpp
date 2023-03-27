@@ -24,11 +24,7 @@ int main()
 
   InitWindow(screenWidth, screenHeight, "Aints");
 
-  std::shared_ptr<World> world = std::make_shared<World>();
-
-  auto test_tile = world->GetTile(0,0);
-
-  //std::cout << "Test tile block type: " << test_tile->blocks[0] << std::endl;
+  auto world= std::make_shared<World>();
 
   entt::registry registry;
 
@@ -42,11 +38,11 @@ int main()
     // ant1.addNeuron();
     ant1->setId(i);
     ant1->updateLocation(4000, 400);
-    ant1->tn.ConnectNeuron(ant1->cn);
-    ant1->tn.ConnectNeuron(ant1->taskn);
-    ant1->cn.ConnectNeuron(ant1->mn);
-    ant1->tn.ConnectNeuron(ant1->fn);
-    ant1->tn.ConnectNeuron(ant1->gn);
+    //    ant1->tn.ConnectNeuron(ant1->cn);
+    //    ant1->tn.ConnectNeuron(ant1->taskn);
+    //    ant1->cn.ConnectNeuron(ant1->mn);
+    //    ant1->tn.ConnectNeuron(ant1->fn);
+    //    ant1->tn.ConnectNeuron(ant1->gn);
     // ant1->mn.ConnectNeuron(ant1->dan);
     registry.emplace<aints *>(entity, ant1);
   }
@@ -58,8 +54,11 @@ int main()
     auto &anAnt= antview.get<aints *>(entity);
   }
 
-//  world->AddFood(4000, 500, 5, *world);
-//  world->AddFood(3700, 400, 20, *world);
+  auto food1= World::PosXY{4000, 400};
+  auto food2= World::PosXY{3700, 400};
+
+  world->AddFood(food1, 5);
+  // world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
   Vector2 camera_position= {
@@ -101,7 +100,7 @@ int main()
       paused= !paused;
     }
 
-    //FIXME: Camera zoom should center on mouse position
+    // FIXME: Camera zoom should center on mouse position
     camera.zoom+= ((float)GetMouseWheelMove() * 0.1f);
 
     if (camera.zoom > 3.0f)
@@ -154,16 +153,18 @@ int main()
 
     ClearBackground(RAYWHITE);
 
-    for (uint16_t y_tile= 0; y_tile < World::kWorldY / World::Tile::kTileY;
-         y_tile++)
+    for (uint16_t y_tile= 0; y_tile < World::WorldTileRatioY; y_tile++)
     {
-      for (uint16_t x_tile= 0; x_tile < World::kWorldX / World::Tile::kTileX;
-           x_tile++)
+      for (uint16_t x_tile= 0; x_tile < World::WorldTileRatioX; x_tile++)
       {
-          auto tile = world->GetTile(x_tile, y_tile);
-//        World::Tile tile= *World::PosToTile(x_tile * World::Tile::kTileX, y_tile * World::Tile::kTileY, world.get());
-        DrawTexture(tile->tile_texture_, (x_tile * World::Tile::kTileX),
-                    (y_tile * World::Tile::kTileY), WHITE);
+        World::PosXY pos= World::PosXY{x_tile, y_tile};
+        auto tile= world->GetTile(pos.TilePosToInt());
+
+        //        World::Tile tile= *World::PosToTile(x_tile *
+        //        World::Tile::kTileX, y_tile * World::Tile::kTileY,
+        //        world.get());
+        DrawTexture(tile->tile_texture_, x_tile * World::Tile::kTileX,
+                    y_tile * World::Tile::kTileY, WHITE);
       }
     }
 
