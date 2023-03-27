@@ -31,7 +31,7 @@ void move_neuron::GatherNavigate(Brain &brain, World::PosXY &next_coord)
   {
     World::FindPath(brain.current_position,
                           brain.current_destination.position,
-                          brain.path_to_target);
+                          brain.path_to_target, brain.world);
     // Make sure path generation didn't fail
     // Remove our current position
     while (!brain.path_to_target.empty() &&
@@ -108,7 +108,7 @@ void move_neuron::tick(float threshold)
                   this->brain.food_stockpile, World::kBlockUnderground, 2);
           std::cout << "Delivering to: " << this->brain.current_destination.position.x << ", "
                     << this->brain.current_destination.position.y << std::endl;
-          this->brain.current_destination.StartTimer(10000);
+          this->brain.current_destination.StartTimer(10000, brain.world);
         }
         else
         {
@@ -122,7 +122,7 @@ void move_neuron::tick(float threshold)
 
     if (newXY != World::PosXY{0, 0} && newXY != brain.current_position)
     {
-      World::BlockTypes block= brain.world->GetBlockAtPos(newXY);
+      World::BlockTypes block= World::GetBlockAtPos(newXY, brain.world);
       if (block == World::BlockTypes::kBlockUnderground)
       {
         // std::cout << "Path info: " << brain.current_position.x << ", " <<
@@ -212,7 +212,7 @@ void detect_food_neuron::tick(float threshold)
     if (brain.sensed_food.position != World::PosXY{0, 0})
     {
       // FIXME: Probably don't want arbitrary expiry times here
-      this->brain.sensed_food.StartTimer(10000);
+      this->brain.sensed_food.StartTimer(10000, this->brain.world);
 //      std::cout << "Food found: " << this->brain.sensed_food.position.x << ", "
 //                << this->brain.sensed_food.position.y << std::endl;
       this->brain.current_destination.position=
@@ -223,7 +223,7 @@ void detect_food_neuron::tick(float threshold)
               this->brain.current_destination.position,
               this->brain.sensed_food.position))
       {
-        this->brain.current_destination.StartTimer(10000);
+        this->brain.current_destination.StartTimer(10000, this->brain.world);
       }
       else
       {
@@ -392,7 +392,7 @@ void detect_adjacent_neuron::tick(float threshold)
       int x= this->brain.current_position.x + dx[i];
       int y= this->brain.current_position.y + dy[i];
       this->brain.adjacent_blocks[i].block=
-          this->brain.world->GetBlockAtPos(World::PosXY{x, y});
+          World::GetBlockAtPos(World::PosXY{x, y}, this->brain.world);
       std::cout << this->brain.adjacent_blocks[i].block << " ";
       this->brain.adjacent_blocks[i].position= World::PosXY{x, y};
     }

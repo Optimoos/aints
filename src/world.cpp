@@ -10,34 +10,30 @@ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
       World::Tile::kTileY, 0.02f, 1337);
 }
 
-World::BlockTypes World::GetBlockAtPos(PosXY blockpos)
+World::BlockTypes World::GetBlockAtPos(PosXY blockpos, World *world)
 {
   const int64_t x_loc= blockpos.x % Tile::kTileX;
   const int64_t y_loc= blockpos.y % Tile::kTileY;
-  const Tile *tile= PosToTile(blockpos.x, blockpos.y);
+  auto tile = PosToTile(blockpos.x, blockpos.y, world);
   return tile->blocks.at(y_loc * Tile::kTileY + x_loc);
 }
 
-void World::SetBlockAtPos(PosXY const position, World::BlockTypes const type)
+void World::SetBlockAtPos(PosXY const position, World::BlockTypes const type, World &world)
 {
   const int64_t x_loc= position.x % Tile::kTileX;
   const int64_t y_loc= position.y % Tile::kTileY;
-  Tile *tile= PosToTile(position.x, position.y);
+  auto tile= PosToTile(position.x, position.y, &world);
   std::cout << "Set block: " << position.x << ", " << position.y << std::endl;
   tile->blocks.at(y_loc * Tile::kTileY + x_loc)= type;
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
-  // std::cout << "Set block: " << position.x << ", " << position.y <<
-  // std::endl;
 }
 
-std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise)
+void World::Tile::NoiseToBlock()
 {
-  std::vector<World::BlockTypes> blocks;
-  blocks.resize(noise.size());
 
   uint32_t location_counter= 0;
-  for (float block : noise)
+  for (float &block : this->noise_data_)
   {
     if ((block > 0.0f) && (block <= 0.1f))
     {
@@ -53,14 +49,13 @@ std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise)
     }
     location_counter++;
   }
-  return blocks;
 }
 
-World::Tile *World::PosToTile(int64_t x_pos, int64_t y_pos)
+std::shared_ptr<World::Tile> World::PosToTile(int64_t const x_pos, int64_t const y_pos, World *world)
 {
   const uint16_t x_tile= x_pos / Tile::kTileX;
   const uint16_t y_tile= y_pos / Tile::kTileY;
-  return &world_tiles_.at(y_tile).at(x_tile);
+  return world->GetTile(x_tile, y_tile);
 }
 
 void World::Tile::GenerateTilePixels()
@@ -118,14 +113,14 @@ void World::Tile::GenerateTileTexture(bool update)
   }
 }
 
-void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size)
+void World::AddFood(int64_t x_pos, int64_t y_pos, int64_t size, World &world)
 {
   for (int64_t x= x_pos - size; x <= x_pos + size; x++)
   {
     int64_t y_range= sqrt(pow(size, 2) - pow(x - x_pos, 2));
     for (int64_t y= y_pos - y_range; y <= y_pos + y_range; y++)
     {
-      SetBlockAtPos(PosXY{x, y}, kBlockFood);
+      SetBlockAtPos(PosXY{x, y}, kBlockFood, world);
     }
   }
 }
@@ -146,7 +141,7 @@ World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
       for (int64_t y= std::max(center.y - y_range, (int64_t)0);
            y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
       {
-        if (type == GetBlockAtPos(PosXY{x, y}) && (PosXY{x,y} != center))
+        if (type == GetBlockAtPos(PosXY{x, y}, this) && (PosXY{x,y} != center))
         {
           return PosXY{x, y};
         }
@@ -162,141 +157,109 @@ World::PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
   return PosXY{0, 0};
 }
 
-std::vector<std::vector<World::Tile>> World::world_tiles_;
-
 World::World()
 {
-  //    auto fnSimplex = FastNoise::New<FastNoise::OpenSimplex2>();
-  //    auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
-  //
-  //    fnFractal->SetSource(fnSimplex);
-  //    fnFractal->SetGain(1.820f);
-  //    fnFractal->SetOctaveCount(3);
-  //    fnFractal->SetLacunarity(0.3f);
-  //
-  //    auto fnDomainScale = FastNoise::New<FastNoise::DomainScale>();
-  //
-  //    fnDomainScale->SetSource(fnFractal);
-  //    fnDomainScale->SetScale(0.66f);
-  //
-  //    auto fnPositionOutput = FastNoise::New<FastNoise::PositionOutput>();
-  //    fnPositionOutput->Set<FastNoise::Dim::Y>(3.0f, -7.0f);
-  //
-  //    auto fnAdd1 = FastNoise::New<FastNoise::Add>();
-  //    fnAdd1->SetLHS(fnDomainScale);
-  //    fnAdd1->SetRHS(fnPositionOutput);
-  //
-  //    auto fnDomainWarp = FastNoise::New<FastNoise::DomainWarpGradient>();
-  //    fnDomainWarp->SetSource(fnAdd1);
-  //    fnDomainWarp->SetWarpAmplitude(0.86f);
-  //    fnDomainWarp->SetWarpFrequency(0.32f);
-  //
-  //    auto fnGenerator = FastNoise::New<FastNoise::Max>();
-  //    fnGenerator->SetLHS(fnDomainScale);
-  //    fnGenerator->SetRHS(fnDomainWarp);
-
-  //
-  //    fnGenerator->GenUniformGrid2D(noise_output.data(), 0, 0, 1600, 900,
-  //    0.02f, 1337); fnGenerator->GenTileable2D(noise_output.data(), 256, 256,
-  //    0.02f, 1337);
+  uint64_t x_tile_count{0};
+  uint64_t y_tile_count{0};
 
   FastNoise::SmartNode<> noise_generator= FastNoise::NewFromEncodedNodeTree(
       "FwAAAIC/AACAPwAAAAAAAIA/DAABAAAAzczMPQkAAAAAgD8=");
-  //    auto fnGenerator = FastNoise::New<FastNoise::Checkerboard>();
-  //    auto fnGenerator = FastNoise::New<FastNoise::OpenSimplex2>();
-  //    auto fnGenerator = FastNoise::New<FastNoise::PositionOutput>();
-  //    fnGenerator->Set<FastNoise::Dim::Y>(3.0f, 0.0f);
-  //    fnGenerator->Set<FastNoise::Dim::X>(0.1f, 1.0f);
 
   // Pre-size world storage and fill with initial data
-  uint16_t y_tile_count= 0;
-  uint16_t x_tile_count= 0;
-  world_tiles_.resize(kWorldY / Tile::kTileY);
+  world_tiles_.clear();
+  world_tiles_.reserve((kWorldX / Tile::kTileX) * (kWorldY / Tile::kTileY));
   BS::thread_pool pool;
-  for (std::vector<Tile> &row : world_tiles_)
+  for (auto iter= 0; iter < (kWorldY / Tile::kTileY); iter++)
   {
-    row.resize(kWorldX / Tile::kTileX);
-    for (Tile &tile : row)
+    while (x_tile_count < (kWorldX / Tile::kTileX))
     {
-      tile.blocks.resize(Tile::kTileX * Tile::kTileY);
-      tile.noise_data_.resize(World::Tile::kTileX * World::Tile::kTileY);
+      auto new_tile= std::make_shared<Tile>();
 
-      auto noise_future=
-          pool.submit(GenerateTileNoise, std::ref(noise_generator),
-                      std::ref(tile.noise_data_), x_tile_count, y_tile_count);
-      // GenerateTileNoise(std::ref(noise_generator),
-      // std::ref(tile.noise_data_), x_tile_count, y_tile_count);
-      // noise_future.wait();
+      //new_tile.get()->blocks.resize(Tile::kTileX * Tile::kTileY);
+      new_tile.get()->noise_data_.resize(World::Tile::kTileX *
+                                         World::Tile::kTileY);
 
-      //            std::thread noise_thread(GenerateTileNoise, std::ref(tile),
-      //            std::ref(noise_generator), x_tile_count, y_tile_count);
-      //            noise_thread.join();
+      auto noise_future= pool.submit(
+          GenerateTileNoise, std::ref(noise_generator),
+          std::ref(new_tile.get()->noise_data_), x_tile_count, y_tile_count);
+
+//      std::cout << "Generator: " << x_tile_count << ", " << y_tile_count << std::endl;
+//      GenerateTileNoise(noise_generator, new_tile.get()->noise_data_, x_tile_count, y_tile_count);
+
+      // FIXME: A vector of shared pointers may not stay consistent if the
+      // vector is resized.
+      world_tiles_.push_back(new_tile);
       x_tile_count++;
     }
     y_tile_count++;
     x_tile_count= 0;
   }
+  std::cout << "Completed initial noise generation." << std::endl;
 
   pool.wait_for_tasks();
 
-  for (std::vector<Tile> &row : world_tiles_)
-  {
-    for (Tile &tile : row)
-    {
-      tile.blocks= NoiseToBlock(tile.noise_data_);
+  std::cout << "Waiting for pool to close." << std::endl;
 
-      x_tile_count++;
-    }
-    y_tile_count++;
-    x_tile_count= 0;
+  for (auto& tile : world_tiles_)
+  {
+//    while (x_tile_count < (kWorldX / Tile::kTileX))
+//    {
+      tile->NoiseToBlock();
+      tile->GenerateTilePixels();
+      tile->GenerateTileTexture(true);
+      std::cout << "Tile done" << std::endl;
+//      x_tile_count++;
+//    }
+//    y_tile_count++;
+//    x_tile_count= 0;
   }
 
-  for (std::vector<Tile> &row : world_tiles_)
-  {
-    for (Tile &tile : row)
-    {
-      // tile.tile_texture_ = GenerateTileTexture(tile.blocks);
-      tile.GenerateTilePixels();
-      tile.GenerateTileTexture();
-
-      x_tile_count++;
-    }
-    y_tile_count++;
-    x_tile_count= 0;
-  }
+//  for (auto row : world_tiles_)
+//  {
+//    for (auto tile : row)
+//    {
+//
+//      tile.get()->GenerateTilePixels();
+//      tile.get()->GenerateTileTexture();
+//
+//      x_tile_count++;
+//    }
+//    y_tile_count++;
+//    x_tile_count= 0;
+//  }
 
   // Generate starting area
-  FastNoise::SmartNode<> starting_area_generator=
-      FastNoise::NewFromEncodedNodeTree(
-          "FwAAAIC/AACAPwAAAAAAAIA/EAAAAAA/EwAAAIA+IgAAAIA/"
-          "zcxMPgUAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPw==");
-  std::vector<std::vector<float>> starting_noise;
-  starting_noise.resize(4);
-  for (std::vector<float> entry : starting_noise)
-  {
-    entry.resize(Tile::kTileX * Tile::kTileY);
-  }
-  uint8_t noise_counter= 0;
-  for (uint8_t y_location= 0; y_location <= 1; y_location++)
-  {
-    for (uint8_t x_location= 0; x_location <= 1; x_location++)
-    {
-      //            starting_area_generator->GenUniformGrid2D(starting_noise.at(noise_counter).data(),
-      //                                              x_location,
-      //                                              y_location,
-      //                                              World::Tile::kTileX,
-      //                                              World::Tile::kTileY,
-      //                                              0.02f, 1337);
-      noise_counter++;
-
-      // Once noise is generated, it needs to be added to the existing noise
-      // data for the tiles in the middle of the map
-
-      // Could probably use some kind of GetTileAtCoordinate function here which
-      // will also be helpful in the future A function for updating the noise
-      // data may also be useful
-    }
-  }
+//  FastNoise::SmartNode<> starting_area_generator=
+//      FastNoise::NewFromEncodedNodeTree(
+//          "FwAAAIC/AACAPwAAAAAAAIA/EAAAAAA/EwAAAIA+IgAAAIA/"
+//          "zcxMPgUAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPw==");
+//  std::vector<std::vector<float>> starting_noise;
+//  starting_noise.resize(4);
+//  for (std::vector<float> entry : starting_noise)
+//  {
+//    entry.resize(Tile::kTileX * Tile::kTileY);
+//  }
+//  uint8_t noise_counter= 0;
+//  for (uint8_t y_location= 0; y_location <= 1; y_location++)
+//  {
+//    for (uint8_t x_location= 0; x_location <= 1; x_location++)
+//    {
+//      //            starting_area_generator->GenUniformGrid2D(starting_noise.at(noise_counter).data(),
+//      //                                              x_location,
+//      //                                              y_location,
+//      //                                              World::Tile::kTileX,
+//      //                                              World::Tile::kTileY,
+//      //                                              0.02f, 1337);
+//      noise_counter++;
+//
+//      // Once noise is generated, it needs to be added to the existing noise
+//      // data for the tiles in the middle of the map
+//
+//      // Could probably use some kind of GetTileAtCoordinate function here which
+//      // will also be helpful in the future A function for updating the noise
+//      // data may also be useful
+//    }
+//  }
 }
 
 bool World::XBlocksAway(PosXY center, PosXY block, uint16_t distance)
@@ -328,7 +291,7 @@ bool World::OneBlockAway(PosXY center, PosXY block)
   }
 }
 
-void World::FindPath(PosXY const origin, PosXY const destination, std::vector<World::PosXY> &results)
+void World::FindPath(PosXY const origin, PosXY const destination, std::vector<World::PosXY> &results, World *world)
 {
   AStarSearch<MapSearchNode> astarsearch;
 
@@ -407,7 +370,7 @@ void World::FindPath(PosXY const origin, PosXY const destination, std::vector<Wo
       int steps= 0;
 
       //node->PrintNodeInfo();
-        node->block_type= World::GetBlockAtPos(node->position);
+        node->block_type= World::GetBlockAtPos(node->position, world);
       results.push_back(node->position);
       for (;;)
       {
@@ -419,7 +382,7 @@ void World::FindPath(PosXY const origin, PosXY const destination, std::vector<Wo
           break;
         }
 
-        node->block_type= World::GetBlockAtPos(node->position);
+        node->block_type= World::GetBlockAtPos(node->position, world);
 
         results.push_back(node->position);
         steps++;
@@ -455,13 +418,13 @@ bool World::PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
   if (OneBlockAway(my_position, place_position))
   {
     // Is the place position empty
-    if (GetBlockAtPos(place_position) == World::kBlockUnderground)
+    if (GetBlockAtPos(place_position, this) == World::kBlockUnderground)
     {
       if (type == kBlockFood)
       {
         type= kBlockStockpiledFood;
       }
-      this->SetBlockAtPos(place_position, type);
+      this->SetBlockAtPos(place_position, type, *this);
       type = kBlockAir;
       successfully_placed= true;
     }
@@ -483,10 +446,10 @@ bool World::PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
   {
     // Is the place position valid for pickup
     // FIXME: This should be a property of the block rather than a static list
-    if (GetBlockAtPos(place_position) != World::kBlockUnderground)
+    if (GetBlockAtPos(place_position, this) != World::kBlockUnderground)
     {
-      type= GetBlockAtPos(place_position);
-      this->SetBlockAtPos(place_position, World::kBlockUnderground);
+      type= GetBlockAtPos(place_position, this);
+      this->SetBlockAtPos(place_position, World::kBlockUnderground, *this);
       successfully_picked= true;
     }
   }

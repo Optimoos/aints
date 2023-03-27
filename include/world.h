@@ -38,12 +38,14 @@ class World
 
     std::vector<World::BlockTypes> blocks{kTileY * kTileX, kBlockAir};
     std::vector<float> noise_data_{kTileY * kTileX, 0.0f};
-    Texture2D tile_texture_{};
     Image tile_pixels[kTileX * kTileY]{
         GenImageColor(World::Tile::kTileX, World::Tile::kTileY, BLANK)};
+    Texture2D tile_texture_{LoadTextureFromImage(*tile_pixels)};
 
     void GenerateTilePixels();
     void GenerateTileTexture(bool update= false);
+
+    void NoiseToBlock();
 
     Tile()= default;
     ~Tile();
@@ -58,36 +60,39 @@ class World
   World(const World &other)= default;
   World &operator=(const World &other)= default;
 
-  static BlockTypes GetBlockAtPos(PosXY blockpos);
+  static BlockTypes GetBlockAtPos(PosXY blockpos, World *world);
   PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
-  void SetBlockAtPos(PosXY position, BlockTypes type);
+  void SetBlockAtPos(PosXY position, BlockTypes type, World &world);
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
                        BlockTypes &type);
   bool PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                         BlockTypes &type);
-  void AddFood(int64_t x_pos, int64_t y_pos, int64_t size);
-  static Tile *PosToTile(int64_t x_pos, int64_t y_pos);
+  void AddFood(int64_t x_pos, int64_t y_pos, int64_t size, World &world);
+  // PosToTile returns a tile based on the world coordinates, not tile coordinates
+  static std::shared_ptr<Tile> PosToTile(int64_t const x_pos, int64_t const y_pos, World *world);
   static bool OneBlockAway(PosXY center, PosXY block);
   bool XBlocksAway(PosXY center, PosXY block, uint16_t distance);
   static void FindPath(PosXY origin, PosXY destination,
-                       std::vector<PosXY> &results);
+                       std::vector<PosXY> &results, World *world);
+  // GetTile returns a tile based on the tile coordinates, not world coordinates
+  // Use PosToTile to get a tile based on world coordinates
+  std::shared_ptr<Tile> GetTile(int64_t const x_tile, int64_t const y_tile) { return world_tiles_.at((y_tile * (World::kWorldY / Tile::kTileY)) + x_tile); }
 
   static const uint16_t kWorldX{8192};
   static const uint16_t kWorldY{2048};
 
  private:
-  static std::vector<std::vector<Tile>> world_tiles_;
+  std::vector<std::shared_ptr<Tile>> world_tiles_{};
 };
 
 void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
                        std::vector<float> &noise_data, uint16_t x_position,
                        uint16_t y_position);
 
-std::vector<World::BlockTypes> NoiseToBlock(std::vector<float> noise);
+
 
 // FIXME: The below is mostly lifted directly from the findpath.cpp example for
-// the A* library, this can probably
-//        be cleaned up for our specific use case
+// the A* library, this can probably be cleaned up for our specific use case
 
 // Definitions
 
@@ -95,15 +100,16 @@ class MapSearchNode
 {
  public:
   World::PosXY position{0, 0};  // the (x,y) positions of the node
-  World::BlockTypes block_type;
+  World::BlockTypes block_type{};
+  World *world;
 
-  MapSearchNode() { block_type= World::GetBlockAtPos(position); }
+  MapSearchNode() { block_type= World::kBlockAir; }
 
-  MapSearchNode(int64_t px, int64_t py)
+  MapSearchNode(World* world, int64_t px, int64_t py)
   {
     position.x= px;
     position.y= py;
-    block_type= World::GetBlockAtPos(position);
+    block_type= World::GetBlockAtPos(position, world);
   }
 
   bool operator==(const MapSearchNode &rhs) const
@@ -166,7 +172,7 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
     parent_position= parent_node->position;
   }
 
-  MapSearchNode NewNode;
+  MapSearchNode NewNode{};
 
   // push each possible move
 
@@ -177,9 +183,9 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
   {
     int x= position.x + dx[i];
     int y= position.y + dy[i];
-    if (World::GetBlockAtPos(World::PosXY{x, y}) == World::kBlockUnderground)
+    if (World::GetBlockAtPos(World::PosXY{x, y}, world) == World::kBlockUnderground)
     {
-      NewNode= MapSearchNode(x, y);
+      NewNode= MapSearchNode(world, x, y);
       astarsearch->AddSuccessor(NewNode);
     }
   }
@@ -196,7 +202,7 @@ float MapSearchNode::GetCost(MapSearchNode &successor)
   // FIXME: We only support a single allowable block initially so we return a
   // constant cost
   float cost{99.0f};
-  World::BlockTypes successor_block= World::GetBlockAtPos(successor.position);
+  World::BlockTypes successor_block= World::GetBlockAtPos(successor.position, this->world);
   switch (successor_block)
   {
     case World::kBlockUnderground:

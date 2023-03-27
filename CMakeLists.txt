@@ -3,6 +3,8 @@ project(aiants CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -ggdb")
+
 if (CMAKE_VERSION VERSION_GREATER "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif()

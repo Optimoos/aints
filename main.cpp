@@ -24,7 +24,11 @@ int main()
 
   InitWindow(screenWidth, screenHeight, "Aints");
 
-  World world;
+  std::shared_ptr<World> world = std::make_shared<World>();
+
+  auto test_tile = world->GetTile(0,0);
+
+  //std::cout << "Test tile block type: " << test_tile->blocks[0] << std::endl;
 
   entt::registry registry;
 
@@ -33,7 +37,7 @@ int main()
   for (int i= 0; i < 1; i++)
   {
     auto entity= registry.create();
-    auto *ant1= new aints(world);
+    auto *ant1= new aints(world.get());
     // movementNeuron mn(ant1);
     // ant1.addNeuron();
     ant1->setId(i);
@@ -54,12 +58,12 @@ int main()
     auto &anAnt= antview.get<aints *>(entity);
   }
 
-  world.AddFood(4000, 500, 5);
-  world.AddFood(3700, 400, 20);
+//  world->AddFood(4000, 500, 5, *world);
+//  world->AddFood(3700, 400, 20, *world);
 
   // Initial position should be midway through world on X and at the top of Y
   Vector2 camera_position= {
-      static_cast<float>((world.kWorldX / 2) - (screenWidth / 2)), 0};
+      static_cast<float>((world->kWorldX / 2) - (screenWidth / 2)), 0};
   Camera2D camera= {0};
 
   camera.target= camera_position;
@@ -76,7 +80,7 @@ int main()
 
     if (IsKeyDown(KEY_RIGHT))
     {
-      if ((camera_position.x + screenWidth) < world.kWorldX)
+      if ((camera_position.x + screenWidth) < world->kWorldX)
         camera_position.x+= 1;
     }
     if (IsKeyDown(KEY_LEFT))
@@ -89,7 +93,7 @@ int main()
     }
     if (IsKeyDown(KEY_DOWN))
     {
-      if ((camera_position.y + screenHeight) < world.kWorldY)
+      if ((camera_position.y + screenHeight) < world->kWorldY)
         camera_position.y+= 1;
     }
     if (IsKeyReleased(KEY_P))
@@ -119,13 +123,13 @@ int main()
         }
         else
         {
-          if ((camera_position.y + screenHeight - movement.y) < world.kWorldY)
+          if ((camera_position.y + screenHeight - movement.y) < world->kWorldY)
             camera_position.y-= movement.y;
         }
       }
       else
       {
-        if ((camera_position.x + screenWidth - movement.x) < world.kWorldX)
+        if ((camera_position.x + screenWidth - movement.x) < world->kWorldX)
           camera_position.x-= movement.x;
         if (movement.y > 0)
         {
@@ -134,7 +138,7 @@ int main()
         }
         else
         {
-          if ((camera_position.y + screenHeight - movement.y) < world.kWorldY)
+          if ((camera_position.y + screenHeight - movement.y) < world->kWorldY)
             camera_position.y-= movement.y;
         }
       }
@@ -156,8 +160,9 @@ int main()
       for (uint16_t x_tile= 0; x_tile < World::kWorldX / World::Tile::kTileX;
            x_tile++)
       {
-        World::Tile &tile= *World::PosToTile(x_tile * World::Tile::kTileX, y_tile * World::Tile::kTileY);
-        DrawTexture(tile.tile_texture_, (x_tile * World::Tile::kTileX),
+          auto tile = world->GetTile(x_tile, y_tile);
+//        World::Tile tile= *World::PosToTile(x_tile * World::Tile::kTileX, y_tile * World::Tile::kTileY, world.get());
+        DrawTexture(tile->tile_texture_, (x_tile * World::Tile::kTileX),
                     (y_tile * World::Tile::kTileY), WHITE);
       }
     }

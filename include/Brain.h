@@ -18,10 +18,10 @@ class Brain
     World::PosXY position{0, 0};
     World::BlockTypes block{World::kBlockAir};
 
-    void StartTimer(int64_t time_until_expiry)
+    void StartTimer(int64_t time_until_expiry, World *world)
     {
       this->expired= false;
-      this->block= World::GetBlockAtPos(position);
+      this->block= World::GetBlockAtPos(position, world);
       this->expiry= time_until_expiry;
       this->expiry_clock= std::chrono::steady_clock::now();
     }
@@ -58,6 +58,11 @@ class Brain
     kTaskDeliveringFood
 
   };
+
+  Brain(World *world);
+  ~Brain()= default;
+
+
 
   bool invalid_state{false};
   LocationInformation adjacent_blocks[7];

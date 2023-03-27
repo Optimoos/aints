@@ -18,26 +18,19 @@ class aints
 {
  public:
   int setId(int newId);
-
   int getId() const;
-
   bool updateLocation(int64_t x, int64_t y);
-
   int64_t getX() const;
-
   int64_t getY() const;
-
   World::PosXY GetPosition() const ;
-  // std::vector<*neuron> neurons;
 
-  aints(World &world);
-
+  aints(World *world);
   ~aints();
 
   void tick();
 
   World *world;
-  Brain brain;
+  Brain brain{world};
 
   timer_neuron tn{brain};
   move_neuron mn{brain};
