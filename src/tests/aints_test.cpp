@@ -19,6 +19,9 @@ class WorldTest : public ::testing::Test
     posxy1_= PosXY{1, 1};
     posxy2_= PosXY{1, 1};
     posxy3_= PosXY{2, 2};
+
+    pos_world_tile_eq_result_1_ = pos_world_tile_eq_.ToWorldTile();
+    pos_world_tile_eq_result_2_ = pos_world_tile_eq_.ToTileInt();
   }
 
   //  void TearDown() override {
@@ -39,6 +42,13 @@ class WorldTest : public ::testing::Test
 
   World world{true};
   PosXY pos_tile_2_{300, 0};
+
+  PosXY pos_world_tile_eq_{4000,400};
+  uint64_t pos_world_tile_eq_result_1_;
+  uint64_t pos_world_tile_eq_result_answer_{47};
+  uint64_t pos_world_tile_eq_result_2_;
+  uint64_t pos_tile_int_eq_result_answer_{37008};
+
 };
 
 TEST_F(WorldTest, PosXYEquality)
@@ -67,6 +77,13 @@ TEST_F(WorldTest, BlockFunctions)
 {
   ASSERT_EQ(World::GetBlockAtPos(posxy1_, &world), kBlockAir);
   ASSERT_EQ(World::GetBlockAtPos(pos_tile_2_, &world), kBlockDirt);
+}
+
+TEST_F(WorldTest, PositionHelpers)
+{
+  ASSERT_EQ(pos_world_tile_eq_result_1_, pos_world_tile_eq_result_answer_);
+  ASSERT_EQ(pos_world_tile_eq_result_2_, pos_tile_int_eq_result_answer_);
+
 }
 
 // Test needed for:

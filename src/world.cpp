@@ -17,7 +17,7 @@ BlockTypes World::GetBlockAtPos(PosXY &blockpos, World *world)
 
 void World::SetBlockAtPos(PosXY const &position, BlockTypes const type)
 {
-  auto tile= this->GetTile(position.ToWorldTile());
+  const auto tile= GetTile(position.ToWorldTile());
   tile->blocks.at(position.ToTileInt())= type;
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
@@ -28,17 +28,17 @@ void World::SetBlockAtPos(PosXY const &position, BlockTypes const type)
 //   return world->GetTile(position.ToTileInt());
 // }
 
-// void World::AddFood(PosXY &position, int64_t const size)
-//{
-//   for (int64_t x= position.x - size; x <= position.x + size; x++)
-//   {
-//     int64_t y_range= sqrt(pow(size, 2) - pow(x - position.x, 2));
-//     for (int64_t y= position.y - y_range; y <= position.y + y_range; y++)
-//     {
-//       this->SetBlockAtPos(position, kBlockFood);
-//     }
-//   }
-// }
+ void World::AddFood(PosXY position, int64_t const size)
+{
+   for (int64_t x= position.x - size; x <= position.x + size; x++)
+   {
+     int64_t y_range= sqrt(pow(size, 2) - pow(x - position.x, 2));
+     for (int64_t y= position.y - y_range; y <= position.y + y_range; y++)
+     {
+       SetBlockAtPos(PosXY{x,y}, kBlockFood);
+     }
+   }
+ }
 
 // World::PosXY World::FindNearestBlockOfType(BlockTypes) {}
 
@@ -119,6 +119,8 @@ World::World(bool debug)
       }
       new_tile.noise_data_.clear();
       new_tile.noise_data_.resize(kTileX * kTileY);
+
+      new_tile.tile_location = PosXY{static_cast<int64_t>(x_tile_count), static_cast<int64_t>(y_tile_count)};
 
       auto noise_future= pool.submit(
           GenerateTileNoise, std::ref(noise_generator),

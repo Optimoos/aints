@@ -40,13 +40,13 @@ struct PosXY
   // such as those used in the Tile class.
   uint64_t ToTileInt() const
   {
-    return ((y % WorldTileRatioY) * kTileY) + (x % WorldTileRatioX);
+    return ((y % kTileY) * kTileX) + (x % kTileX);
   };
   // Turns a PosXY into a single integer that can be used to index a 1D array
   // such as the one used in the World class.
   uint64_t ToWorldTile() const
   {
-    return ((y / WorldTileRatioY) + (x / WorldTileRatioX));
+    return (((y / kTileY) * WorldTileRatioX) + (x / kTileX));
   };
   // Turns a PosXY of a tile location into a single integer that can be used to
   // index a 1D array

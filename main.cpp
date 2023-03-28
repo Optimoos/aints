@@ -55,11 +55,11 @@ int main()
     auto &anAnt= antview.get<aints *>(entity);
   }
 
-  auto food1= PosXY{4000, 400};
+  auto food1= PosXY{4000, 600};
   auto food2= PosXY{3700, 400};
 
-  //   world->AddFood(food1, 5);
-  //   world->AddFood(food2, 20);
+     world.AddFood(food1, 5);
+     world.AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
   Vector2 camera_position= {

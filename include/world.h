@@ -26,7 +26,7 @@ class World
                        BlockTypes &type);
   bool PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
                         BlockTypes &type);
-  //  void AddFood(PosXY &position, int64_t const size);
+    void AddFood(PosXY position, int64_t const size);
   // PosToTile returns a tile based on the world coordinates, not tile
   // coordinates It's also useful as it's static
   //  static std::shared_ptr<Tile> PosToTile(PosXY position, World *world);
@@ -46,8 +46,8 @@ class World
   bool debug_{false};
 };
 
-// void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
-//                        std::vector<float> &noise_data, uint16_t x_position,
-//                        uint16_t y_position);
+ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
+                        std::vector<float> &noise_data, uint16_t x_position,
+                        uint16_t y_position);
 
 #endif

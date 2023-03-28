@@ -107,5 +107,7 @@ void Tile::GenerateTileTexture(bool update)
   else
   {
     UpdateTexture(tile_texture_, tile_pixels.data);
+    std::cout << "Tile update: " << std::to_string(tile_location.x) << ", "
+              << std::to_string(tile_location.y) << std::endl;
   }
 }

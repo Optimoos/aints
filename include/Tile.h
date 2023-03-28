@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "aints_types.h"
 #include "raylib.h"
@@ -14,6 +15,8 @@ class Tile
  public:
   std::vector<BlockTypes> blocks{kTileX * kTileY, kBlockDirt};
   std::vector<float> noise_data_{kTileX * kTileY};
+
+  PosXY tile_location{-1,-1};
 
   Image tile_pixels;
   Texture2D tile_texture_;
