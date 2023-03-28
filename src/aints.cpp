@@ -29,7 +29,7 @@ int64_t aints::getX() const { return this->brain.current_position.x; }
 
 int64_t aints::getY() const { return this->brain.current_position.y; }
 
-World::PosXY aints::GetPosition() const { return this->brain.current_position; }
+PosXY aints::GetPosition() const { return this->brain.current_position; }
 
 aints::aints(World *world) : world(world)
 {
@@ -41,7 +41,7 @@ aints::~aints() { std::cout << "Ant deconstructed" << std::endl; }
 
 void aints::tick()
 {
-  //    this->fn.tick(World::PosXY{this->brain.current_position.x,this->brain.current_position.y},
+  //    this->fn.tick(PosXY{this->brain.current_position.x,this->brain.current_position.y},
   //    1.0f, this->world); if (this->fn.food_location.x != 0) {
   //        this->brain.path_to_target = this->fn.food_location;
   //    }

@@ -7,6 +7,7 @@
 
 #include <chrono>
 
+#include "aints_types.h"
 #include "world.h"
 
 class Brain
@@ -15,8 +16,8 @@ class Brain
   class LocationInformation
   {
    public:
-    World::PosXY position{0, 0};
-    World::BlockTypes block{World::kBlockAir};
+    PosXY position{0, 0};
+    BlockTypes block{kBlockAir};
 
     void StartTimer(int64_t time_until_expiry, World *world)
     {
@@ -62,16 +63,14 @@ class Brain
   Brain(World *world);
   ~Brain()= default;
 
-
-
   bool invalid_state{false};
   LocationInformation adjacent_blocks[7];
   TaskType current_task{kTaskWandering};
-  World::BlockTypes carrying{World::kBlockAir};
-  std::vector<World::PosXY> path_to_target{};
-  World::PosXY current_position{0, 0};
-  World::PosXY food_stockpile{4000, 300};
-  World::PosXY dropoff_position{0, 0};
+  BlockTypes carrying{kBlockAir};
+  std::vector<PosXY> path_to_target{};
+  PosXY current_position{0, 0};
+  PosXY food_stockpile{4000, 300};
+  PosXY dropoff_position{0, 0};
   LocationInformation sensed_food;
   LocationInformation current_destination;
   World *world;

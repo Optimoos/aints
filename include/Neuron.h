@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Brain.h"
+#include "MapSearchNode.h"
 #include "world.h"
 
 class Neuron
@@ -51,12 +52,11 @@ class move_neuron : public Neuron
 
   void ReceiveSignal(float weight) override;
 
-  void MoveOneTowards(World::PosXY &origin, World::PosXY &destination);
+  void MoveOneTowards(PosXY &origin, PosXY &destination);
 
-  void RandomMovement(World::PosXY &original_location,
-                      World::PosXY &new_location);
+  void RandomMovement(PosXY &original_location, PosXY &new_location);
 
-  void GatherNavigate(Brain &brain,World::PosXY &next_coord);
+  void GatherNavigate(Brain &brain, PosXY &next_coord);
 
  private:
 };
@@ -64,11 +64,11 @@ class move_neuron : public Neuron
 class detect_food_neuron : public Neuron
 {
  public:
-  World::PosXY food_location{0, 0};
+  PosXY food_location{0, 0};
 
   detect_food_neuron(Brain &brain);
 
-  // void tick(World::PosXY origin, float distance, World* world);
+  // void tick(PosXY origin, float distance, World* world);
   void tick(float threshold) override;
 
  private:

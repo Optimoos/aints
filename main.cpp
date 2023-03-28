@@ -1,3 +1,4 @@
+#include "aints_types.h"
 #include "raylib.h"
 
 #define RAYGUI_IMPLEMENTATION
@@ -24,25 +25,25 @@ int main()
 
   InitWindow(screenWidth, screenHeight, "Aints");
 
-  auto world= std::make_shared<World>();
+  // auto world= std::make_shared<World>();
+  World world;
 
   entt::registry registry;
 
   bool paused{false};
+  bool debug{false};
 
   for (int i= 0; i < 1; i++)
   {
     auto entity= registry.create();
-    auto *ant1= new aints(world.get());
-    // movementNeuron mn(ant1);
-    // ant1.addNeuron();
+    auto *ant1= new aints(&world);
     ant1->setId(i);
     ant1->updateLocation(4000, 400);
-    //    ant1->tn.ConnectNeuron(ant1->cn);
-    //    ant1->tn.ConnectNeuron(ant1->taskn);
-    //    ant1->cn.ConnectNeuron(ant1->mn);
-    //    ant1->tn.ConnectNeuron(ant1->fn);
-    //    ant1->tn.ConnectNeuron(ant1->gn);
+    //        ant1->tn.ConnectNeuron(ant1->cn);
+    //        ant1->tn.ConnectNeuron(ant1->taskn);
+    //        ant1->cn.ConnectNeuron(ant1->mn);
+    //        ant1->tn.ConnectNeuron(ant1->fn);
+    //        ant1->tn.ConnectNeuron(ant1->gn);
     // ant1->mn.ConnectNeuron(ant1->dan);
     registry.emplace<aints *>(entity, ant1);
   }
@@ -54,15 +55,15 @@ int main()
     auto &anAnt= antview.get<aints *>(entity);
   }
 
-  auto food1= World::PosXY{4000, 400};
-  auto food2= World::PosXY{3700, 400};
+  auto food1= PosXY{4000, 400};
+  auto food2= PosXY{3700, 400};
 
-  // world->AddFood(food1, 5);
-  // world->AddFood(food2, 20);
+  //   world->AddFood(food1, 5);
+  //   world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
   Vector2 camera_position= {
-      static_cast<float>((world->kWorldX / 2) - (screenWidth / 2)), 0};
+      static_cast<float>((kWorldX / 2) - (screenWidth / 2)), 0};
   Camera2D camera= {0};
 
   camera.target= camera_position;
@@ -79,8 +80,7 @@ int main()
 
     if (IsKeyDown(KEY_RIGHT))
     {
-      if ((camera_position.x + screenWidth) < world->kWorldX)
-        camera_position.x+= 1;
+      if ((camera_position.x + screenWidth) < kWorldX) camera_position.x+= 1;
     }
     if (IsKeyDown(KEY_LEFT))
     {
@@ -92,12 +92,15 @@ int main()
     }
     if (IsKeyDown(KEY_DOWN))
     {
-      if ((camera_position.y + screenHeight) < world->kWorldY)
-        camera_position.y+= 1;
+      if ((camera_position.y + screenHeight) < kWorldY) camera_position.y+= 1;
     }
     if (IsKeyReleased(KEY_P))
     {
       paused= !paused;
+    }
+    if (IsKeyReleased(KEY_D))
+    {
+      debug= !debug;
     }
 
     // FIXME: Camera zoom should center on mouse position
@@ -122,13 +125,13 @@ int main()
         }
         else
         {
-          if ((camera_position.y + screenHeight - movement.y) < world->kWorldY)
+          if ((camera_position.y + screenHeight - movement.y) < kWorldY)
             camera_position.y-= movement.y;
         }
       }
       else
       {
-        if ((camera_position.x + screenWidth - movement.x) < world->kWorldX)
+        if ((camera_position.x + screenWidth - movement.x) < kWorldX)
           camera_position.x-= movement.x;
         if (movement.y > 0)
         {
@@ -137,7 +140,7 @@ int main()
         }
         else
         {
-          if ((camera_position.y + screenHeight - movement.y) < world->kWorldY)
+          if ((camera_position.y + screenHeight - movement.y) < kWorldY)
             camera_position.y-= movement.y;
         }
       }
@@ -153,29 +156,23 @@ int main()
 
     ClearBackground(RAYWHITE);
 
-    uint64_t test_count{0};
-    for (uint16_t y_tile= 0; y_tile < World::WorldTileRatioY; y_tile++)
+    for (uint16_t y_tile= 0; y_tile < WorldTileRatioY; y_tile++)
     {
-      for (uint16_t x_tile= 0; x_tile < World::WorldTileRatioX; x_tile++)
+      for (uint16_t x_tile= 0; x_tile < WorldTileRatioX; x_tile++)
       {
-        World::PosXY pos= World::PosXY{x_tile, y_tile};
-        auto tile= world->GetTile(pos.TilePosToInt());
-
-        //        World::Tile tile= *World::PosToTile(x_tile *
-        //        World::Tile::kTileX, y_tile * World::Tile::kTileY,
-        //        world.get());
-        DrawTexture(*tile->tile_texture_, x_tile * World::Tile::kTileX,
-                    y_tile * World::Tile::kTileY, WHITE);
-
+        PosXY pos= PosXY{x_tile, y_tile};
+        auto tile= world.GetTile(pos.TilePosToInt());
+        DrawTexture(tile->tile_texture_, x_tile * kTileX, y_tile * kTileY,
+                    WHITE);
       }
     }
 
     Brain::TaskType debug_task_record{};
-    World::PosXY debug_ant_location{};
-    World::PosXY debug_destination{};
+    PosXY debug_ant_location{};
+    PosXY debug_destination{};
     uint64_t debug_ant_path_length{};
-    World::BlockTypes debug_block_type{};
-    World::PosXY debug_sensed_food{};
+    BlockTypes debug_block_type{};
+    PosXY debug_sensed_food{};
     for (auto entity : antview)
     {
       auto &anAnt= antview.get<aints *>(entity);
@@ -183,12 +180,15 @@ int main()
       {
         anAnt->tick();
       }
-      debug_ant_location= anAnt->GetPosition();
-      debug_destination= anAnt->brain.current_destination.position;
-      debug_task_record= anAnt->brain.current_task;
-      debug_ant_path_length= anAnt->brain.path_to_target.size();
-      debug_block_type= anAnt->brain.carrying;
-      debug_sensed_food= anAnt->brain.sensed_food.position;
+      if (debug)
+      {
+        debug_ant_location= anAnt->GetPosition();
+        debug_destination= anAnt->brain.current_destination.position;
+        debug_task_record= anAnt->brain.current_task;
+        debug_ant_path_length= anAnt->brain.path_to_target.size();
+        debug_block_type= anAnt->brain.carrying;
+        debug_sensed_food= anAnt->brain.sensed_food.position;
+      }
       // No need to draw if the ant is not on camera
       if ((camera_position.x < anAnt->getX() <
            (camera_position.x + screenWidth)) &&
@@ -208,19 +208,23 @@ int main()
     EndMode2D();
 
     DrawFPS(10, 10);
-    std::string debug_text=
-        std::string("Cam X: ") + std::to_string(camera_position.x) +
-        std::string("; Y: ") + std::to_string(camera_position.y) +
-        std::string(" Action: ") + std::to_string(debug_task_record) +
-        std::string(" Position: ") + std::to_string(debug_ant_location.x) +
-        std::string(", ") + std::to_string(debug_ant_location.y) +
-        std::string(" Destination: ") + std::to_string(debug_destination.x) +
-        std::string(", ") + std::to_string(debug_destination.y) +
-        std::string(" Sensed Food: ") + std::to_string(debug_sensed_food.x) +
-        std::string(", ") + std::to_string(debug_sensed_food.y) +
-        std::string(" Path Length: ") + std::to_string(debug_ant_path_length) +
-        std::string(" Block Type: ") + std::to_string(debug_block_type);
-    DrawText(debug_text.c_str(), 10, 40, 10, RED);
+    if (debug)
+    {
+      std::string debug_text=
+          std::string("Cam X: ") + std::to_string(camera_position.x) +
+          std::string("; Y: ") + std::to_string(camera_position.y) +
+          std::string(" Action: ") + std::to_string(debug_task_record) +
+          std::string(" Position: ") + std::to_string(debug_ant_location.x) +
+          std::string(", ") + std::to_string(debug_ant_location.y) +
+          std::string(" Destination: ") + std::to_string(debug_destination.x) +
+          std::string(", ") + std::to_string(debug_destination.y) +
+          std::string(" Sensed Food: ") + std::to_string(debug_sensed_food.x) +
+          std::string(", ") + std::to_string(debug_sensed_food.y) +
+          std::string(" Path Length: ") +
+          std::to_string(debug_ant_path_length) + std::string(" Block Type: ") +
+          std::to_string(debug_block_type);
+      DrawText(debug_text.c_str(), 10, 40, 10, RED);
+    }
     EndDrawing();
 
     //----------------------------------------------------------------------------------

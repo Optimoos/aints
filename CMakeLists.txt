@@ -34,7 +34,6 @@ add_executable(aiants main.cpp ${AINTS_FILES})
 
 #add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} raylib raygui EnTT::EnTT FastNoise)
-#target_link_libraries(aints_test GTest)
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
 enable_testing()
@@ -42,7 +41,12 @@ enable_testing()
 add_executable(
         aints_test
         src/tests/aints_test.cpp
-        ${AINTS_FILES}
+        #${AINTS_FILES}
+        include/world.h
+        src/world.cpp
+        include/Tile.h
+        src/Tile.cpp
+        include/aints_types.h
 )
 target_link_libraries(
         aints_test

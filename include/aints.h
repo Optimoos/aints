@@ -22,7 +22,7 @@ class aints
   bool updateLocation(int64_t x, int64_t y);
   int64_t getX() const;
   int64_t getY() const;
-  World::PosXY GetPosition() const ;
+  PosXY GetPosition() const;
 
   aints(World *world);
   ~aints();
