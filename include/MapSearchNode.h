@@ -15,14 +15,15 @@ class MapSearchNode
  public:
   PosXY position{0, 0};  // the (x,y) positions of the node
   BlockTypes block_type{};
-  World *world;
+  std::shared_ptr<World> world{};
 
   MapSearchNode() { block_type= kBlockAir; }
 
-  MapSearchNode(World *world, int64_t px, int64_t py)
+  MapSearchNode(std::shared_ptr<World> world, int64_t px, int64_t py)
   {
     position.x= px;
     position.y= py;
+    this->world= world;
     block_type= World::GetBlockAtPos(position, world);
   }
 
@@ -41,7 +42,7 @@ class MapSearchNode
 };
 
 void FindPath(PosXY origin, PosXY destination, std::vector<PosXY> &results,
-              World *world);
+              std::shared_ptr<World> world);
 
 bool MapSearchNode::IsSameState(MapSearchNode &rhs)
 {
@@ -103,7 +104,7 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch,
     auto pos= PosXY{x, y};
     if (World::GetBlockAtPos(pos, world) == kBlockUnderground)
     {
-      NewNode= MapSearchNode(world, x, y);
+      NewNode= MapSearchNode(this->world, x, y);
       astarsearch->AddSuccessor(NewNode);
     }
   }
@@ -121,7 +122,7 @@ float MapSearchNode::GetCost(MapSearchNode &successor)
   // constant cost
   float cost{99.0f};
   BlockTypes successor_block=
-      World::GetBlockAtPos(successor.position, this->world);
+      World::GetBlockAtPos(successor.position, world);
   switch (successor_block)
   {
     case kBlockUnderground:

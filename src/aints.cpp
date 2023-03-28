@@ -31,7 +31,7 @@ int64_t aints::getY() const { return this->brain.current_position.y; }
 
 PosXY aints::GetPosition() const { return this->brain.current_position; }
 
-aints::aints(World *world) : world(world)
+aints::aints(std::shared_ptr<World> world) : world(world)
 {
 
   std::cout << "Ant constructed" << std::endl;

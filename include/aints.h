@@ -24,12 +24,12 @@ class aints
   int64_t getY() const;
   PosXY GetPosition() const;
 
-  aints(World *world);
+  aints(std::shared_ptr<World> world);
   ~aints();
 
   void tick();
 
-  World *world;
+  std::shared_ptr<World> world;
   Brain brain{world};
 
   timer_neuron tn{brain};

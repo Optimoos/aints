@@ -12,6 +12,7 @@
 #include "raylib.h"
 
 class World
+    : public std::enable_shared_from_this<World>
 {
  public:
   World(bool debug= false);
@@ -19,7 +20,7 @@ class World
   World(const World &other)= default;
   World &operator=(const World &other)= default;
 
-  static BlockTypes GetBlockAtPos(PosXY &blockpos, World *world);
+  static BlockTypes GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world);
   PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
   void SetBlockAtPos(PosXY const &position, BlockTypes type);
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,

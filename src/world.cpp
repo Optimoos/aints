@@ -9,7 +9,7 @@ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
                                     1337);
 }
 
-BlockTypes World::GetBlockAtPos(PosXY &blockpos, World *world)
+BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
 {
   auto tile= world->GetTile(blockpos.ToWorldTile());
   return tile->blocks.at(blockpos.ToTileInt());
@@ -57,7 +57,7 @@ PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
            y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
       {
         auto pos= PosXY{x, y};
-        if (type == GetBlockAtPos(pos, this) && (pos != center))
+        //if (type == GetBlockAtPos(pos, ) && (pos != center))
         {
           return pos;
         }
@@ -238,7 +238,7 @@ bool World::PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
   if (OneBlockAway(my_position, place_position))
   {
     // Is the place position empty
-    if (GetBlockAtPos(place_position, this) == kBlockUnderground)
+    if (GetBlockAtPos(place_position, shared_from_this()) == kBlockUnderground)
     {
       if (type == kBlockFood)
       {
@@ -266,9 +266,9 @@ bool World::PickupBlockAtPos(PosXY const &my_position, PosXY &place_position,
   {
     // Is the place position valid for pickup
     // FIXME: This should be a property of the block rather than a static list
-    if (GetBlockAtPos(place_position, this) != kBlockUnderground)
+    if (GetBlockAtPos(place_position, shared_from_this()) != kBlockUnderground)
     {
-      type= GetBlockAtPos(place_position, this);
+      type= GetBlockAtPos(place_position, shared_from_this());
       this->SetBlockAtPos(place_position, kBlockUnderground);
       successfully_picked= true;
     }

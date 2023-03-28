@@ -25,8 +25,8 @@ int main()
 
   InitWindow(screenWidth, screenHeight, "Aints");
 
-  // auto world= std::make_shared<World>();
-  World world;
+  auto world= std::make_shared<World>();
+  //World world;
 
   entt::registry registry;
 
@@ -36,15 +36,15 @@ int main()
   for (int i= 0; i < 1; i++)
   {
     auto entity= registry.create();
-    auto *ant1= new aints(&world);
+    auto *ant1= new aints(world);
     ant1->setId(i);
     ant1->updateLocation(4000, 400);
-    //        ant1->tn.ConnectNeuron(ant1->cn);
-    //        ant1->tn.ConnectNeuron(ant1->taskn);
-    //        ant1->cn.ConnectNeuron(ant1->mn);
-    //        ant1->tn.ConnectNeuron(ant1->fn);
-    //        ant1->tn.ConnectNeuron(ant1->gn);
-    // ant1->mn.ConnectNeuron(ant1->dan);
+    ant1->tn.ConnectNeuron(ant1->cn);
+    ant1->tn.ConnectNeuron(ant1->taskn);
+    ant1->cn.ConnectNeuron(ant1->mn);
+    ant1->tn.ConnectNeuron(ant1->fn);
+    ant1->tn.ConnectNeuron(ant1->gn);
+    ant1->mn.ConnectNeuron(ant1->dan);
     registry.emplace<aints *>(entity, ant1);
   }
 
@@ -58,8 +58,8 @@ int main()
   auto food1= PosXY{4000, 600};
   auto food2= PosXY{3700, 400};
 
-     world.AddFood(food1, 5);
-     world.AddFood(food2, 20);
+     world->AddFood(food1, 5);
+     world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
   Vector2 camera_position= {
@@ -161,7 +161,7 @@ int main()
       for (uint16_t x_tile= 0; x_tile < WorldTileRatioX; x_tile++)
       {
         PosXY pos= PosXY{x_tile, y_tile};
-        auto tile= world.GetTile(pos.TilePosToInt());
+        auto tile= world->GetTile(pos.TilePosToInt());
         DrawTexture(tile->tile_texture_, x_tile * kTileX, y_tile * kTileY,
                     WHITE);
       }
@@ -195,8 +195,8 @@ int main()
           (camera_position.y < anAnt->getY() <
            (camera_position.y + screenHeight)))
       {
-        // DrawPixel(anAnt.getX(), anAnt.getY(), BLACK);
-        DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
+         DrawPixel(anAnt->getX(), anAnt->getY(), BLACK);
+        //DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
       }
     }
     // raygui: controls drawing

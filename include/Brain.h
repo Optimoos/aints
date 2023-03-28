@@ -19,7 +19,7 @@ class Brain
     PosXY position{0, 0};
     BlockTypes block{kBlockAir};
 
-    void StartTimer(int64_t time_until_expiry, World *world)
+    void StartTimer(int64_t time_until_expiry, std::shared_ptr<World> world)
     {
       this->expired= false;
       this->block= World::GetBlockAtPos(position, world);
@@ -60,7 +60,7 @@ class Brain
 
   };
 
-  Brain(World *world);
+  Brain(std::shared_ptr<World> world);
   ~Brain()= default;
 
   bool invalid_state{false};
@@ -73,7 +73,7 @@ class Brain
   PosXY dropoff_position{0, 0};
   LocationInformation sensed_food;
   LocationInformation current_destination;
-  World *world;
+  std::shared_ptr<World> world;
 };
 
 #endif  // AIANTS_BRAIN_H

@@ -1,7 +1,7 @@
 #include "MapSearchNode.h"
 
 void FindPath(PosXY const origin, PosXY const destination,
-              std::vector<PosXY> &results, World *world)
+              std::vector<PosXY> &results, std::shared_ptr<World> world)
 {
   AStarSearch<MapSearchNode> astarsearch;
 
@@ -14,10 +14,12 @@ void FindPath(PosXY const origin, PosXY const destination,
     // Create a start state
     MapSearchNode nodeStart{};
     nodeStart.position= origin;
+    nodeStart.world= world;
 
     // Define the goal state
     MapSearchNode nodeEnd{};
     nodeEnd.position= destination;
+    nodeEnd.world= world;
 
     // Set Start and goal states
 

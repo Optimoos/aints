@@ -4,6 +4,6 @@
 
 #include "Brain.h"
 
-Brain::Brain(World *world) : world(world){
+Brain::Brain(std::shared_ptr<World> world) : world(world){
 
  }
