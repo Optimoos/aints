@@ -54,19 +54,21 @@ int main()
     auto &anAnt= antview.get<aints *>(entity);
   }
 
-  auto food1= PosXY{4000, 600};
-  auto food2= PosXY{3700, 400};
+  auto food1= PosXY{4000, 500};
+  auto food2= PosXY{3500, 400};
 
-     world->AddFood(food1, 5);
-     world->AddFood(food2, 20);
+  world->AddFood(food1, 5);
+//  world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
-  Vector2 camera_position= {
-      static_cast<float>((kWorldX / 2) - (screenWidth / 2)), 0};
+//  Vector2 camera_position= {
+//      static_cast<float>((kWorldX / 2) - (screenWidth / 2)), 0};
+  Vector2 camera_position= {(float)kWorldX / 2, (float)screenHeight/2 };
+
   Camera2D camera= {0};
 
   camera.target= camera_position;
-  camera.offset= (Vector2){0, 0};
+  camera.offset= (Vector2){screenWidth * 0.5f, screenHeight * 0.5f};
   camera.zoom= 1.0f;
 
   SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
@@ -107,42 +109,25 @@ int main()
 
     if (camera.zoom > 3.0f)
       camera.zoom= 3.0f;
-    else if (camera.zoom < 0.1f)
-      camera.zoom= 0.1f;
+    else if (camera.zoom < 1.0f)
+      camera.zoom= 1.0f;
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
       Vector2 movement= GetMouseDelta();
-      if (movement.x > 0)
-      {
-        if ((camera_position.x - movement.x) > 0)
-          camera_position.x-= movement.x;
-        if (movement.y > 0)
-        {
-          if ((camera_position.y - movement.y) > 0)
-            camera_position.y-= movement.y;
-        }
-        else
-        {
-          if ((camera_position.y + screenHeight - movement.y) < kWorldY)
-            camera_position.y-= movement.y;
-        }
-      }
-      else
-      {
-        if ((camera_position.x + screenWidth - movement.x) < kWorldX)
-          camera_position.x-= movement.x;
-        if (movement.y > 0)
-        {
-          if ((camera_position.y - movement.y) > 0)
-            camera_position.y-= movement.y;
-        }
-        else
-        {
-          if ((camera_position.y + screenHeight - movement.y) < kWorldY)
-            camera_position.y-= movement.y;
-        }
-      }
+      std::cout << "Camera position: " << camera_position.x << ", "
+                << camera_position.y << " movement: " << movement.x << ", " << movement.y <<
+          std::endl;
+
+      camera_position.x-= movement.x;
+      camera_position.y-= movement.y;
+
+      if (camera_position.x <= camera.offset.x ) {camera_position.x= camera.offset.x; }
+      else if (camera_position.x >= (kWorldX - camera.offset.x)) { camera_position.x= kWorldX - camera.offset.x; }
+      else { camera_position.x-= movement.x; }
+      if (camera_position.y <= camera.offset.y) { camera_position.y= camera.offset.y; }
+      else if (camera_position.y >= (kWorldY - camera.offset.y)) { camera_position.y= kWorldY - camera.offset.y; }
+      else { camera_position.y-= movement.y; }
     }
 
     camera.target= camera_position;
@@ -177,7 +162,7 @@ int main()
       auto &anAnt= antview.get<aints *>(entity);
       if (!paused)
       {
-        anAnt->tick();
+        //anAnt->tick();
       }
       if (debug)
       {
@@ -194,8 +179,8 @@ int main()
           (camera_position.y < anAnt->getY() <
            (camera_position.y + screenHeight)))
       {
-         //DrawPixel(anAnt->getX(), anAnt->getY(), BLACK);
-        DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
+        // DrawPixel(anAnt->getX(), anAnt->getY(), BLACK);
+        DrawRectangle(anAnt->getX(), anAnt->getY(), 2, 2, BLACK);
       }
     }
     // raygui: controls drawing
