@@ -57,7 +57,7 @@ PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
            y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
       {
         auto pos= PosXY{x, y};
-        //if (type == GetBlockAtPos(pos, ) && (pos != center))
+        if (type == GetBlockAtPos(pos, shared_from_this()) && (pos != center))
         {
           return pos;
         }

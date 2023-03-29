@@ -72,7 +72,7 @@ void FindPath(PosXY const origin, PosXY const destination,
 
     if (SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED)
     {
-      // std::cout << "Search found goal state\n";
+      std::cout << "Search found goal state\n";
 
       MapSearchNode *node= astarsearch.GetSolutionStart();
 
@@ -99,7 +99,7 @@ void FindPath(PosXY const origin, PosXY const destination,
         steps++;
       };
 
-      // std::cout << "Solution steps " << steps << std::endl;
+      std::cout << "Solution steps " << steps << std::endl;
 
       // Once you're done with the solution you can free the nodes up
       astarsearch.FreeSolutionNodes();

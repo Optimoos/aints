@@ -212,9 +212,9 @@ void detect_food_neuron::tick(float threshold)
     {
       // FIXME: Probably don't want arbitrary expiry times here
       this->brain.sensed_food.StartTimer(10000, this->brain.world);
-      //      std::cout << "Food found: " << this->brain.sensed_food.position.x
-      //      << ", "
-      //                << this->brain.sensed_food.position.y << std::endl;
+            std::cout << "Food found: " << this->brain.sensed_food.position.x
+            << ", "
+                      << this->brain.sensed_food.position.y << std::endl;
       this->brain.current_destination.position=
           this->brain.world->FindNearestBlockOfType(
               this->brain.sensed_food.position, BlockTypes::kBlockUnderground,

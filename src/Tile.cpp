@@ -10,7 +10,7 @@ Tile::Tile()
   tile_pixels= GenImageColor(kTileX, kTileY, GREEN);
   tile_texture_= LoadTextureFromImage(tile_pixels);
 
-  std::cout << "Tile created" << std::endl;
+  //std::cout << "Tile created" << std::endl;
 
   // tile_pixels = std::make_shared<Image>(GenImageColor(World::Tile::kTileX,
   // World::Tile::kTileY, GREEN)); tile_texture_ =
@@ -20,7 +20,7 @@ Tile::Tile()
 Tile::~Tile()
 {
   UnloadImage(tile_pixels);
-  std::cout << "Tile destroyed" << std::endl;
+  //std::cout << "Tile destroyed" << std::endl;
 }
 
 void Tile::NoiseToBlock()

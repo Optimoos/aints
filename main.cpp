@@ -26,7 +26,6 @@ int main()
   InitWindow(screenWidth, screenHeight, "Aints");
 
   auto world= std::make_shared<World>();
-  //World world;
 
   entt::registry registry;
 
@@ -195,8 +194,8 @@ int main()
           (camera_position.y < anAnt->getY() <
            (camera_position.y + screenHeight)))
       {
-         DrawPixel(anAnt->getX(), anAnt->getY(), BLACK);
-        //DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
+         //DrawPixel(anAnt->getX(), anAnt->getY(), BLACK);
+        DrawRectangle(anAnt->getX(), anAnt->getY(), 1, 1, BLACK);
       }
     }
     // raygui: controls drawing
