@@ -9,8 +9,28 @@ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
                                     1337);
 }
 
+BlockTypes World::GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world)
+{
+//  std::cout << "GetBlockAtPos: " << blockpos.x << ", " << blockpos.y
+//            << std::endl;
+  if (blockpos.x < 0 || blockpos.y < 0 || blockpos.x >= kWorldX ||
+      blockpos.y >= kWorldY)
+  {
+    return kBlockInvalid;
+  }
+  auto tile= world->GetTile(blockpos.ToWorldTile());
+  return tile->blocks.at(blockpos.ToTileInt());
+}
+
 BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
 {
+//  std::cout << "GetBlockAtPos: " << blockpos.x << ", " << blockpos.y
+//            << std::endl;
+  if (blockpos.x < 0 || blockpos.y < 0 || blockpos.x >= kWorldX ||
+      blockpos.y >= kWorldY)
+  {
+    return kBlockInvalid;
+  }
   auto tile= world->GetTile(blockpos.ToWorldTile());
   return tile->blocks.at(blockpos.ToTileInt());
 }
@@ -23,54 +43,129 @@ void World::SetBlockAtPos(PosXY const &position, BlockTypes const type)
   tile->GenerateTileTexture(true);
 }
 
-// std::shared_ptr<World::Tile> World::PosToTile(PosXY position, World *world)
-//{
-//   return world->GetTile(position.ToTileInt());
-// }
-
- void World::AddFood(PosXY position, int64_t const size)
+void World::AddFood(PosXY position, int64_t const size)
 {
-   for (int64_t x= position.x - size; x <= position.x + size; x++)
-   {
-     int64_t y_range= sqrt(pow(size, 2) - pow(x - position.x, 2));
-     for (int64_t y= position.y - y_range; y <= position.y + y_range; y++)
-     {
-       SetBlockAtPos(PosXY{x,y}, kBlockFood);
-     }
-   }
- }
+  for (int64_t x= position.x - size; x <= position.x + size; x++)
+  {
+    int64_t y_range= sqrt(pow(size, 2) - pow(x - position.x, 2));
+    for (int64_t y= position.y - y_range; y <= position.y + y_range; y++)
+    {
+      SetBlockAtPos(PosXY{x, y}, kBlockFood);
+    }
+  }
+}
 
 // World::PosXY World::FindNearestBlockOfType(BlockTypes) {}
 
-PosXY World::FindNearestBlockOfType(PosXY center, BlockTypes type,
+PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
                                     uint64_t range)
 {
-  for (int64_t r= 1; r <= range; r++)
-  {
-    bool points_found= false;
+  PosXY result{-1, -1};
 
-    for (int64_t x= std::max(center.x - r, (int64_t)0);
-         x <= std::min(center.x + r, (int64_t)kWorldX); x++)
+  if (GetBlockAtPos(center, shared_from_this()) == type)
+  {
+    result= center;
+  }
+  else
+  {
+    bool found= false;
+    for (int d= 1; d < range; d++)
     {
-      int64_t y_range= sqrt(pow(r, 2) - pow(x - center.x, 2));
-      for (int64_t y= std::max(center.y - y_range, (int64_t)0);
-           y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
+      for (int i= 0; i < d + 1; i++)
       {
-        auto pos= PosXY{x, y};
-        if (type == GetBlockAtPos(pos, shared_from_this()) && (pos != center))
+        int x1= center.x - d + i;
+        int y1= center.y - i;
+
+        // Check point (x1, y1)
+        if (GetBlockAtPos(PosXY{x1, y1}, shared_from_this()) == type)
         {
-          return pos;
+          result= PosXY{x1, y1};
+          found= true;
+          break;
         }
-        points_found= true;
+
+        int x2= center.x + d - i;
+        int y2= center.y + i;
+
+        // Check point (x2, y2)
+        if (GetBlockAtPos(PosXY{x2, y2}, shared_from_this()) == type)
+        {
+          result= PosXY{x2, y2};
+          found= true;
+          break;
+        }
+      }
+      if (found)
+      {
+        break;
+      }
+      for (int i= 1; i < d; i++)
+      {
+        int x1= center.x - i;
+        int y1= center.y + d - i;
+
+        // Check point (x1, y1)
+        if (GetBlockAtPos(PosXY{x1, y1}, shared_from_this()) == type)
+        {
+          result= PosXY{x1, y1};
+          found= true;
+          break;
+        }
+
+        int x2= center.x + i;
+        int y2= center.y - d + i;
+
+        // Check point (x2, y2)
+        if (GetBlockAtPos(PosXY{x2, y2}, shared_from_this()) == type)
+        {
+          result= PosXY{x2, y2};
+          found= true;
+          break;
+        }
+      }
+      if (found)
+      {
+        break;
       }
     }
-
-    if (!points_found)
-    {
-      break;
-    }
   }
-  return PosXY{0, 0};
+  return result;
+
+  //  if (GetBlockAtPos(center, shared_from_this()) == type)
+  //  {
+  //    result = center;
+  //  }
+  //  else
+  //  {
+  //
+  //  for (int64_t r= 1; r <= range; r++)
+  //  {
+  //    bool points_found= false;
+  //
+  //    for (int64_t x= std::max(center.x - r, (int64_t)0);
+  //         x <= std::min(center.x + r, (int64_t)kWorldX); x++)
+  //    {
+  //      int64_t y_range= sqrt(pow(r, 2) - pow(x - center.x, 2));
+  //      for (int64_t y= std::max(center.y - y_range, (int64_t)0);
+  //           y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
+  //      {
+  //        auto pos= PosXY{x, y};
+  //        if (type == GetBlockAtPos(pos, shared_from_this()) && (pos !=
+  //        center))
+  //        {
+  //          result = pos;
+  //        }
+  //        points_found= true;
+  //      }
+  //    }
+  //
+  //    if (!points_found)
+  //    {
+  //      break;
+  //    }
+  //  }
+  //  }
+  //  return result;
 }
 
 World::World(bool debug)
@@ -120,7 +215,8 @@ World::World(bool debug)
       new_tile.noise_data_.clear();
       new_tile.noise_data_.resize(kTileX * kTileY);
 
-      new_tile.tile_location = PosXY{static_cast<int64_t>(x_tile_count), static_cast<int64_t>(y_tile_count)};
+      new_tile.tile_location= PosXY{static_cast<int64_t>(x_tile_count),
+                                    static_cast<int64_t>(y_tile_count)};
 
       auto noise_future= pool.submit(
           GenerateTileNoise, std::ref(noise_generator),

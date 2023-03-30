@@ -13,7 +13,8 @@ enum BlockTypes
   kBlockWater,
   kBlockSand,
   kBlockUnderground,
-  kBlockStockpiledFood
+  kBlockStockpiledFood,
+  kBlockInvalid
 };
 
 static constexpr uint16_t kWorldX{8192};
@@ -31,7 +32,38 @@ struct PosXY
   int64_t x{0};
   int64_t y{0};
 
+  PosXY()= default;
+
+  PosXY(int64_t x, int64_t y) : x(x), y(y) {}
+
+  PosXY(const PosXY &other)
+  {
+        x= other.x;
+        y= other.y;
+  }
+
+  PosXY(PosXY&& other) noexcept
+  {
+        x= other.x;
+        y= other.y;
+
+        other.x= 0;
+        other.y= 0;
+  }
+
+  PosXY &operator=(const PosXY &other)
+  {
+          x= other.x;
+          y= other.y;
+
+          return *this;
+  }
+
   bool operator==(const PosXY &rhs) const { return x == rhs.x && y == rhs.y; }
+
+  bool operator<(const PosXY &rhs) const { return x < rhs.x || (x == rhs.x && y < rhs.y); }
+
+  bool operator>(const PosXY &rhs) const { return x > rhs.x || (x == rhs.x && y > rhs.y); }
 
   // Turns a PosXY into a single integer that can be used to index a 1D array
   // For coordinates "internal" to a tile, from 0,0 to Tile::kTileX,Tile::kTileY
@@ -40,7 +72,7 @@ struct PosXY
   // such as those used in the Tile class.
   uint64_t ToTileInt() const
   {
-    return ((y % kTileY) * kTileX) + (x % kTileX);
+    return ((y % kTileY) * kTileY) + (x % kTileX);
   };
   // Turns a PosXY into a single integer that can be used to index a 1D array
   // such as the one used in the World class.

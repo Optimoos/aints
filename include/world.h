@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "BS_thread_pool.hpp"
 #include "FastNoise/FastNoise.h"
@@ -21,7 +22,8 @@ class World
   World &operator=(const World &other)= default;
 
   static BlockTypes GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world);
-  PosXY FindNearestBlockOfType(PosXY center, BlockTypes type, uint64_t range);
+  static BlockTypes GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world);
+  PosXY FindNearestBlockOfType(PosXY &center, BlockTypes type, uint64_t range);
   void SetBlockAtPos(PosXY const &position, BlockTypes type);
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
                        BlockTypes &type);

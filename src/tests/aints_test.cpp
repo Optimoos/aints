@@ -2,15 +2,6 @@
 
 #include "world.h"
 
-// Demonstrate some basic assertions.
-TEST(HelloTest, BasicAssertions)
-{
-  // Expect two strings not to be equal.
-  EXPECT_STRNE("hello", "world");
-  // Expect equality.
-  EXPECT_EQ(7 * 6, 42);
-}
-
 class WorldTest : public ::testing::Test
 {
  protected:
@@ -22,6 +13,9 @@ class WorldTest : public ::testing::Test
 
     pos_world_tile_eq_result_1_ = pos_world_tile_eq_.ToWorldTile();
     pos_world_tile_eq_result_2_ = pos_world_tile_eq_.ToTileInt();
+    pos_world_tile_eq_result_3_ = pos_world_tile_eq_2_.ToTileInt();
+    pos_find_nearest_1_ = world->FindNearestBlockOfType(posxy1_, kBlockAir, 10);
+    pos_find_nearest_2_ = world->FindNearestBlockOfType(pos_tile_1_, kBlockDirt, 5);
   }
 
   //  void TearDown() override {
@@ -40,14 +34,23 @@ class WorldTest : public ::testing::Test
   PosXY posxy10_{1, 2};
   PosXY posxy11_{-1, 0};
 
-  World world{true};
-  PosXY pos_tile_2_{300, 0};
+  std::shared_ptr<World> world= std::make_shared<World>(true);
+
+  PosXY pos_tile_1_{255,0};
+  PosXY pos_tile_2_{256, 0};
 
   PosXY pos_world_tile_eq_{4000,400};
+  PosXY pos_world_tile_eq_2_{400,900};
   uint64_t pos_world_tile_eq_result_1_;
   uint64_t pos_world_tile_eq_result_answer_{47};
   uint64_t pos_world_tile_eq_result_2_;
-  uint64_t pos_tile_int_eq_result_answer_{37008};
+  uint64_t pos_world_tile_eq_result_3_;
+  uint64_t pos_tile_int_eq_result_answer_{37024};
+  uint64_t pos_tile_int_eq_result_answer_2_{33936};
+
+  PosXY pos_find_nearest_1_;
+  PosXY pos_find_nearest_2_;
+
 
 };
 
@@ -75,14 +78,18 @@ TEST_F(WorldTest, PosXYOneBlockAway)
 
 TEST_F(WorldTest, BlockFunctions)
 {
-  ASSERT_EQ(World::GetBlockAtPos(posxy1_, &world), kBlockAir);
-  ASSERT_EQ(World::GetBlockAtPos(pos_tile_2_, &world), kBlockDirt);
+  ASSERT_EQ(World::GetBlockAtPos(posxy1_, world), kBlockAir);
+  ASSERT_EQ(World::GetBlockAtPos(pos_tile_2_, world), kBlockDirt);
 }
 
 TEST_F(WorldTest, PositionHelpers)
 {
   ASSERT_EQ(pos_world_tile_eq_result_1_, pos_world_tile_eq_result_answer_);
   ASSERT_EQ(pos_world_tile_eq_result_2_, pos_tile_int_eq_result_answer_);
+  ASSERT_EQ(pos_world_tile_eq_result_3_, pos_tile_int_eq_result_answer_2_);
+
+  ASSERT_EQ(pos_find_nearest_1_, posxy1_);
+  ASSERT_EQ(pos_find_nearest_2_, pos_tile_2_);
 
 }
 

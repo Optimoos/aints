@@ -61,8 +61,6 @@ int main()
 //  world->AddFood(food2, 20);
 
   // Initial position should be midway through world on X and at the top of Y
-//  Vector2 camera_position= {
-//      static_cast<float>((kWorldX / 2) - (screenWidth / 2)), 0};
   Vector2 camera_position= {(float)kWorldX / 2, (float)screenHeight/2 };
 
   Camera2D camera= {0};
@@ -115,13 +113,10 @@ int main()
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
       Vector2 movement= GetMouseDelta();
-      std::cout << "Camera position: " << camera_position.x << ", "
-                << camera_position.y << " movement: " << movement.x << ", " << movement.y <<
-          std::endl;
-
       camera_position.x-= movement.x;
       camera_position.y-= movement.y;
 
+      // FIXME: Cannot push the camera to edges of the world with camera zoomed in
       if (camera_position.x <= camera.offset.x ) {camera_position.x= camera.offset.x; }
       else if (camera_position.x >= (kWorldX - camera.offset.x)) { camera_position.x= kWorldX - camera.offset.x; }
       else { camera_position.x-= movement.x; }
@@ -162,7 +157,7 @@ int main()
       auto &anAnt= antview.get<aints *>(entity);
       if (!paused)
       {
-        //anAnt->tick();
+        anAnt->tick();
       }
       if (debug)
       {

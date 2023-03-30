@@ -58,6 +58,9 @@ class move_neuron : public Neuron
 
   void GatherNavigate(Brain &brain, PosXY &next_coord);
 
+  void SetFoodStockpileAsDestination();
+  void DoMovement(PosXY &location);
+
  private:
 };
 

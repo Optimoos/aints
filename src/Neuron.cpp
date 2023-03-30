@@ -41,10 +41,57 @@ void move_neuron::GatherNavigate(Brain &brain, PosXY &next_coord)
   if (!brain.path_to_target.empty())
   {
     next_coord= *brain.path_to_target.begin();
+  } else {
+    // FIXME: Need to do something here if A* navigation fails
+  }
+
+}
+
+void move_neuron::SetFoodStockpileAsDestination()
+{
+  // FIXME: Arbitrarily searching 20 blocks around the stockpile, should
+  // be dynamic
+  this->brain.current_destination.position=
+      this->brain.world->FindNearestBlockOfType(
+          this->brain.food_stockpile, kBlockUnderground, 2);
+  std::cout << "Delivering to: "
+            << this->brain.current_destination.position.x << ", "
+            << this->brain.current_destination.position.y << std::endl;
+  this->brain.current_destination.StartTimer(10000, brain.world);
+}
+
+void move_neuron::DoMovement(PosXY &location)
+{
+  if (location != PosXY{0, 0} && location != brain.current_position)
+  {
+    BlockTypes block= World::GetBlockAtPos(location, brain.world);
+    if (block == BlockTypes::kBlockUnderground)
+    {
+      // std::cout << "Path info: " << brain.current_position.x << ", " <<
+      // brain.current_position.y << " New: " << newXY.x << ", " << newXY.y <<
+      // " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
+      MoveOneTowards(brain.current_position, location);
+    }
+    else
+    {
+      std::cout << "Block: " << block << std::endl;
+      if (!brain.path_to_target.empty())
+      {
+        brain.path_to_target.pop_back();
+      }
+    }
+  }
+  else if (location == brain.current_position)
+  {
+    std::cout << "Ant is trying to move to the position it's already in"
+              << std::endl;
   }
   else
   {
-    brain.current_task= Brain::kTaskWandering;
+    std::cout << "THIS SHOULD NEVER HAPPEN" << std::endl;
+    std::cout << " location: " << location.x << ", " << location.y << std::endl;
+    std::cout << " brain.current_position: " << brain.current_position.x
+              << ", " << brain.current_position.y << std::endl;
   }
 }
 
@@ -97,18 +144,7 @@ void move_neuron::tick(float threshold)
 
         if (this->brain.current_destination.Expired())
         {
-          // FIXME: Arbitrarily searching 20 blocks around the stockpile, should
-          // be dynamic
-          //          this->brain.dropoff_position=
-          //          this->brain.world->FindNearestBlockOfType(
-          //              this->brain.food_stockpile, kBlockUnderground, 20);
-          this->brain.current_destination.position=
-              this->brain.world->FindNearestBlockOfType(
-                  this->brain.food_stockpile, kBlockUnderground, 2);
-          std::cout << "Delivering to: "
-                    << this->brain.current_destination.position.x << ", "
-                    << this->brain.current_destination.position.y << std::endl;
-          this->brain.current_destination.StartTimer(10000, brain.world);
+          SetFoodStockpileAsDestination();
         }
         else
         {
@@ -119,41 +155,7 @@ void move_neuron::tick(float threshold)
         std::cout << "Move neuron was given invalid task" << std::endl;
         break;
     }
-
-    if (newXY != PosXY{0, 0} && newXY != brain.current_position)
-    {
-      BlockTypes block= World::GetBlockAtPos(newXY, brain.world);
-      if (block == BlockTypes::kBlockUnderground)
-      {
-        // std::cout << "Path info: " << brain.current_position.x << ", " <<
-        // brain.current_position.y << " New: " << newXY.x << ", " << newXY.y <<
-        // " Block: " << brain.world->GetBlockAtPos(newXY) << std::endl;
-        MoveOneTowards(brain.current_position, newXY);
-      }
-      else
-      {
-        std::cout << "Block: " << block << std::endl;
-        if (!brain.path_to_target.empty())
-        {
-          brain.path_to_target.pop_back();
-        }
-        // Fixme: This is a panic fix to move to an open block 1 block away if
-        // it exists.
-        //        This should be handled by better pathfinding instead.
-        // brain.current_position =
-        // brain.world->FindNearestBlockOfType(brain.current_position,
-        // kBlockUnderground, 3);
-      }
-    }
-    else if (newXY == brain.current_position)
-    {
-      std::cout << "Ant is trying to move to the position it's already in"
-                << std::endl;
-    }
-    else
-    {
-      std::cout << "THIS SHOULD NEVER HAPPEN" << std::endl;
-    }
+          DoMovement(newXY);
   }
 }
 
