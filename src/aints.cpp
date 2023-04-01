@@ -47,10 +47,10 @@ void aints::tick()
   //    }
   //    this->mn.tick(1.0f, this->brain);
   //    this->updateLocation(this->getX(), this->getY());
-  this->tn.tick();
+  this->tn.Tick();
   if (this->brain.invalid_state)
   {
-    this->dan.tick(1.0f);
+    this->dan.Tick(1.0f);
     this->brain.invalid_state= false;
   }
 }

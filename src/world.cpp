@@ -58,13 +58,15 @@ void World::AddFood(PosXY position, int64_t const size)
 // World::PosXY World::FindNearestBlockOfType(BlockTypes) {}
 
 PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
-                                    uint64_t range)
+                                    uint64_t range, bool at_least_one_away)
 {
   PosXY result{-1, -1};
+  result.valid= false;
 
-  if (GetBlockAtPos(center, shared_from_this()) == type)
+  if (GetBlockAtPos(center, shared_from_this()) == type && !at_least_one_away)
   {
     result= center;
+    result.valid= true;
   }
   else
   {
@@ -80,6 +82,7 @@ PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
         if (GetBlockAtPos(PosXY{x1, y1}, shared_from_this()) == type)
         {
           result= PosXY{x1, y1};
+          result.valid= true;
           found= true;
           break;
         }
@@ -91,6 +94,7 @@ PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
         if (GetBlockAtPos(PosXY{x2, y2}, shared_from_this()) == type)
         {
           result= PosXY{x2, y2};
+          result.valid= true;
           found= true;
           break;
         }
@@ -108,6 +112,7 @@ PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
         if (GetBlockAtPos(PosXY{x1, y1}, shared_from_this()) == type)
         {
           result= PosXY{x1, y1};
+          result.valid=true;
           found= true;
           break;
         }
@@ -119,6 +124,7 @@ PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
         if (GetBlockAtPos(PosXY{x2, y2}, shared_from_this()) == type)
         {
           result= PosXY{x2, y2};
+          result.valid= true;
           found= true;
           break;
         }
@@ -129,43 +135,8 @@ PosXY World::FindNearestBlockOfType(PosXY &center, BlockTypes type,
       }
     }
   }
-  return result;
 
-  //  if (GetBlockAtPos(center, shared_from_this()) == type)
-  //  {
-  //    result = center;
-  //  }
-  //  else
-  //  {
-  //
-  //  for (int64_t r= 1; r <= range; r++)
-  //  {
-  //    bool points_found= false;
-  //
-  //    for (int64_t x= std::max(center.x - r, (int64_t)0);
-  //         x <= std::min(center.x + r, (int64_t)kWorldX); x++)
-  //    {
-  //      int64_t y_range= sqrt(pow(r, 2) - pow(x - center.x, 2));
-  //      for (int64_t y= std::max(center.y - y_range, (int64_t)0);
-  //           y <= std::min(center.y + y_range, (int64_t)kWorldY); y++)
-  //      {
-  //        auto pos= PosXY{x, y};
-  //        if (type == GetBlockAtPos(pos, shared_from_this()) && (pos !=
-  //        center))
-  //        {
-  //          result = pos;
-  //        }
-  //        points_found= true;
-  //      }
-  //    }
-  //
-  //    if (!points_found)
-  //    {
-  //      break;
-  //    }
-  //  }
-  //  }
-  //  return result;
+  return result;
 }
 
 World::World(bool debug)
@@ -338,9 +309,10 @@ bool World::PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
     {
       if (type == kBlockFood)
       {
-        type= kBlockStockpiledFood;
+        this->SetBlockAtPos(place_position, kBlockStockpiledFood);
+      } else {
+        this->SetBlockAtPos(place_position, type);
       }
-      this->SetBlockAtPos(place_position, type);
       type= kBlockAir;
       successfully_placed= true;
     }

@@ -30,7 +30,8 @@ int main()
   entt::registry registry;
 
   bool paused{false};
-  bool debug{false};
+  // FIXME: This should default false before release
+  bool debug{true};
 
   for (int i= 0; i < 1; i++)
   {

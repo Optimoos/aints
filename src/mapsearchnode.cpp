@@ -1,4 +1,4 @@
-#include "MapSearchNode.h"
+#include "mapsearchnode.h"
 
 void FindPath(PosXY const origin, PosXY const destination,
               std::vector<PosXY> &results, std::shared_ptr<World> world)

@@ -31,6 +31,7 @@ struct PosXY
 {
   int64_t x{0};
   int64_t y{0};
+  bool valid{true};
 
   PosXY()= default;
 
@@ -40,6 +41,7 @@ struct PosXY
   {
         x= other.x;
         y= other.y;
+        valid= other.valid;
   }
 
   PosXY(PosXY&& other) noexcept
@@ -55,6 +57,7 @@ struct PosXY
   {
           x= other.x;
           y= other.y;
+          valid= other.valid;
 
           return *this;
   }

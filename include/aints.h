@@ -9,8 +9,9 @@
 #include <iostream>
 #include <vector>
 
-#include "Brain.h"
-#include "Neuron.h"
+#include "brain.h"
+#include "neuron.h"
+#include "moveneuron.h"
 #include "raylib.h"
 #include "world.h"
 
@@ -32,18 +33,18 @@ class aints
   std::shared_ptr<World> world;
   Brain brain{world};
 
-  timer_neuron tn{brain};
-  move_neuron mn{brain};
-  detect_food_neuron fn{brain};
-  connector_neuron cn{brain};
-  task_neuron taskn{brain};
-  gather_neuron gn{brain};
-  detect_adjacent_neuron dan{brain};
+  TimerNeuron tn{brain};
+  MoveNeuron mn{brain};
+  DetectFoodNeuron fn{brain};
+  ConnectorNeuron cn{brain};
+  TaskNeuron taskn{brain};
+  GatherNeuron gn{brain};
+  DetectAdjacentNeuron dan{brain};
 
  private:
   int id= 0;
 
-  // move_neuron* mn = new move_neuron;
+  // MoveNeuron* mn = new MoveNeuron;
 };
 
 #endif  // AIANTS_AINTS_H

@@ -23,7 +23,7 @@ class World
 
   static BlockTypes GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world);
   static BlockTypes GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world);
-  PosXY FindNearestBlockOfType(PosXY &center, BlockTypes type, uint64_t range);
+  PosXY FindNearestBlockOfType(PosXY &center, BlockTypes type, uint64_t range, bool at_least_one_away = false);
   void SetBlockAtPos(PosXY const &position, BlockTypes type);
   bool PlaceBlockAtPos(PosXY const &my_position, PosXY &place_position,
                        BlockTypes &type);
