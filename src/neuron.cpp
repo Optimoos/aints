@@ -21,7 +21,6 @@ void DetectFoodNeuron::Tick(float threshold)
       (this->brain.sensed_food.Expired()) && (threshold >= this->threshold) &&
       (this->brain.carrying == kBlockAir))
   {
-    std::cout << "Search food tick " << std::to_string(distance) << std::endl;
     this->brain.sensed_food.position= this->brain.world->FindNearestBlockOfType(
         this->brain.current_position, BlockTypes::kBlockFood,
         static_cast<uint64_t>(distance));
@@ -29,9 +28,6 @@ void DetectFoodNeuron::Tick(float threshold)
     {
       // FIXME: Probably don't want arbitrary expiry times here
       this->brain.sensed_food.StartTimer(10000, this->brain.world);
-            std::cout << "Food found: " << this->brain.sensed_food.position.x
-            << ", "
-                      << this->brain.sensed_food.position.y << std::endl;
       this->brain.current_destination.position=
           this->brain.world->FindNearestBlockOfType(
               this->brain.sensed_food.position, BlockTypes::kBlockUnderground,
@@ -46,9 +42,6 @@ void DetectFoodNeuron::Tick(float threshold)
       {
         this->brain.current_destination.SetExpired();
       }
-      std::cout << "Moving towards: "
-                << this->brain.current_destination.position.x << ", "
-                << this->brain.current_destination.position.y << std::endl;
     }
   }  // else {
      // Didn't detect food, wander for a bit
@@ -205,8 +198,8 @@ void DetectAdjacentNeuron::Tick(float threshold)
 {
   if (threshold > this->threshold)
   {
-    int dx[8]= {-1, -1, -1, 0, 0, 1, 1, 1};
-    int dy[8]= {-1, 0, 1, -1, 1, -1, 0, 1};
+    int dx[8]= {-1, 0, 1, 1, 1, 0, -1, -1};
+    int dy[8]= {-1, -1, -1, 0, 1, 1, 1, 0};
 
     std::cout << "Adjacent blocks: ";
     for (int i= 0; i < 8; i++)
@@ -244,12 +237,14 @@ void GatherNeuron::Tick(float threshold)
   {
     if (this->brain.world->PlaceBlockAtPos(
             this->brain.current_position,
-            this->brain.dropoff_position, this->brain.carrying))
+            this->brain.dropoff_position.position, this->brain.carrying))
     {
       this->brain.current_task= Brain::kTaskWandering;
       this->brain.current_destination.SetExpired();
       this->brain.path_to_target.clear();
-      std::cout << "Dropped off food: " << this->brain.current_destination.position.x << ", " << this->brain.current_destination.position.y << std::endl;
+    } else {
+      this->brain.dropoff_position.SetExpired();
+      //this->brain.current_destination.SetExpired();
     }
   }
 
@@ -266,9 +261,8 @@ void GatherNeuron::Tick(float threshold)
         this->brain.path_to_target.clear();
         this->brain.current_destination.SetExpired();
         this->brain.sensed_food.SetExpired();
-        std::cout << "Picked up food: "
-                  << this->brain.current_destination.position.x << ", "
-                  << this->brain.current_destination.position.y << std::endl;
+      } else {
+        this->brain.sensed_food.SetExpired();
       }
     }
   }

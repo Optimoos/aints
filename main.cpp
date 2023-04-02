@@ -33,7 +33,7 @@ int main()
   // FIXME: This should default false before release
   bool debug{true};
 
-  for (int i= 0; i < 1; i++)
+  for (int i= 0; i < 10; i++)
   {
     auto entity= registry.create();
     auto *ant1= new aints(world);

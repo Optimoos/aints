@@ -74,8 +74,6 @@ void MoveNeuron::GatherNavigate(Brain &brain, PosXY &next_coord)
     next_coord= *brain.path_to_target.begin();
     DoMovement(next_coord);
   } else {
-    std::cout << "Finding gathering path to: " << brain.current_destination.position.x
-              << ", " << brain.current_destination.position.y << std::endl;
     FindPath(brain.current_position, brain.current_destination.position,
              brain.path_to_target, brain.world);
     // FIXME: Need to do something here if A* navigation fails
@@ -99,8 +97,6 @@ void MoveNeuron::DeliverNavigate(Brain &brain, PosXY &next_coord)
     next_coord= *brain.path_to_target.begin();
     DoMovement(next_coord);
   } else {
-    std::cout << "Finding delivery path to: " << brain.current_destination.position.x
-              << ", " << brain.current_destination.position.y << " path size: " << brain.path_to_target.size() << std::endl;
     FindPath(brain.current_position, brain.current_destination.position,
              brain.path_to_target, brain.world);
     // FIXME: Need to do something here if A* navigation fails
@@ -133,18 +129,15 @@ void MoveNeuron::SetFoodStockpileAsDestination()
 {
   // FIXME: Arbitrarily searching 20 blocks around the stockpile, should
   // be dynamic
-  this->brain.dropoff_position=
+  this->brain.dropoff_position.position=
       this->brain.world->FindNearestBlockOfType(
           this->brain.food_stockpile, kBlockUnderground, 20);
   this->brain.current_destination.position=
       this->brain.world->FindNearestBlockOfType(
-          this->brain.dropoff_position, kBlockUnderground,
+          this->brain.dropoff_position.position, kBlockUnderground,
           static_cast<uint64_t>(2), true);
-
-  std::cout << "Delivering to: "
-            << this->brain.current_destination.position.x << ", "
-            << this->brain.current_destination.position.y << std::endl;
   this->brain.current_destination.StartTimer(10000, brain.world);
+  this->brain.dropoff_position.StartTimer(10000, brain.world);
 }
 
 void MoveNeuron::DoMovement(PosXY &location)
@@ -161,7 +154,7 @@ void MoveNeuron::DoMovement(PosXY &location)
     }
     else
     {
-      std::cout << "Block: " << block << std::endl;
+      //std::cout << "Block: " << block << std::endl;
       if (!brain.path_to_target.empty())
       {
         brain.path_to_target.pop_back();

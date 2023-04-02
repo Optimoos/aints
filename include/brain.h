@@ -64,13 +64,13 @@ class Brain
   ~Brain()= default;
 
   bool invalid_state{false};
-  LocationInformation adjacent_blocks[7];
+  LocationInformation adjacent_blocks[8];
   TaskType current_task{kTaskWandering};
   BlockTypes carrying{kBlockAir};
   std::vector<PosXY> path_to_target{};
   PosXY current_position{0, 0};
   PosXY food_stockpile{4000, 300};
-  PosXY dropoff_position{0, 0};
+  LocationInformation dropoff_position;
   LocationInformation sensed_food;
   LocationInformation current_destination;
   std::shared_ptr<World> world;

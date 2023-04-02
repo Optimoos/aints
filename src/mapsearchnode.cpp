@@ -21,6 +21,7 @@ void FindPath(PosXY const origin, PosXY const destination,
     nodeEnd.position= destination;
     nodeEnd.world= world;
 
+
     // Set Start and goal states
 
     astarsearch.SetStartAndGoalStates(nodeStart, nodeEnd);
@@ -33,8 +34,8 @@ void FindPath(PosXY const origin, PosXY const destination,
       SearchState= astarsearch.SearchStep();
 
       SearchSteps++;
-#if DEBUG_LISTS
 
+#if DEBUG_LISTS
       std::cout << "Steps:" << SearchSteps << "\n";
 
       int len= 0;
@@ -72,12 +73,12 @@ void FindPath(PosXY const origin, PosXY const destination,
 
     if (SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED)
     {
-      std::cout << "Search found goal state\n";
+      //std::cout << "Search found goal state\n";
 
       MapSearchNode *node= astarsearch.GetSolutionStart();
 
 #if DISPLAY_SOLUTION
-      cout << "Displaying solution\n";
+      std::cout << "Displaying solution\n";
 #endif
       int steps= 0;
 
@@ -99,14 +100,12 @@ void FindPath(PosXY const origin, PosXY const destination,
         steps++;
       };
 
-      std::cout << "Solution steps " << steps << std::endl;
-
       // Once you're done with the solution you can free the nodes up
       astarsearch.FreeSolutionNodes();
     }
     else if (SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED)
     {
-      std::cout << "Search terminated. Did not find goal state\n";
+      std::cout << "Search terminated after " << SearchSteps << " steps. Did not find goal state\n";
     }
 
     // Display the number of loops the search went through
