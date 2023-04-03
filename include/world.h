@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <future>
 
 #include "BS_thread_pool.hpp"
 #include "FastNoise/FastNoise.h"
@@ -43,6 +44,8 @@ class World
     return world_tiles_.at(index);
   }
   // Tile GetTile(uint64_t index) {  return world_tiles_.at(index); }
+
+  static std::mutex world_mutex;
 
  private:
   std::vector<std::shared_ptr<Tile>> world_tiles_{};

@@ -19,7 +19,7 @@ BlockTypes World::GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world)
     return kBlockInvalid;
   }
   auto tile= world->GetTile(blockpos.ToWorldTile());
-  return tile->blocks.at(blockpos.ToTileInt());
+  return tile->Block(blockpos.ToTileInt());
 }
 
 BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
@@ -32,16 +32,19 @@ BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
     return kBlockInvalid;
   }
   auto tile= world->GetTile(blockpos.ToWorldTile());
-  return tile->blocks.at(blockpos.ToTileInt());
+  return tile->Block(blockpos.ToTileInt());
 }
 
 void World::SetBlockAtPos(PosXY const &position, BlockTypes const type)
 {
   const auto tile= GetTile(position.ToWorldTile());
-  tile->blocks.at(position.ToTileInt())= type;
+  std::lock_guard<std::mutex> lock(world_mutex);
+  tile->SetBlock(position.ToTileInt(), type);
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
 }
+
+std::mutex World::world_mutex;
 
 void World::AddFood(PosXY position, int64_t const size)
 {
@@ -177,21 +180,21 @@ World::World(bool debug)
       {
         if (x_tile_count % 2 == 0)
         {
-          for (auto &block : new_tile.blocks)
+          for (auto &block : *new_tile.Blocks())
           {
             block= kBlockAir;
           }
         }
       }
-      new_tile.noise_data_.clear();
-      new_tile.noise_data_.resize(kTileX * kTileY);
+      new_tile.NoiseData()->clear();
+      new_tile.NoiseData()->resize(kTileX * kTileY);
 
-      new_tile.tile_location= PosXY{static_cast<int64_t>(x_tile_count),
+      *new_tile.TileLocation()= PosXY{static_cast<int64_t>(x_tile_count),
                                     static_cast<int64_t>(y_tile_count)};
 
       auto noise_future= pool.submit(
           GenerateTileNoise, std::ref(noise_generator),
-          std::ref(new_tile.noise_data_), x_tile_count, y_tile_count);
+          std::ref(*new_tile.NoiseData()), x_tile_count, y_tile_count);
 
       // NOTE: This call is not happy with the default initialization of
       // noise_data_ in the Tile class.
@@ -215,7 +218,7 @@ World::World(bool debug)
     }
     tile->GenerateTilePixels();
 
-    ImageDrawText(&tile->tile_pixels, std::to_string(tmp_counter).c_str(), 20,
+    ImageDrawText(tile->TilePixels(), std::to_string(tmp_counter).c_str(), 20,
                   20, 20, BLACK);
 
     tile->GenerateTileTexture(true);

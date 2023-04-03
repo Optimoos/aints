@@ -3,7 +3,8 @@
 void FindPath(PosXY const origin, PosXY const destination,
               std::vector<PosXY> &results, std::shared_ptr<World> world)
 {
-  AStarSearch<MapSearchNode> astarsearch;
+
+  AStarSearch<MapSearchNode> astarsearch(10000);
 
   unsigned int SearchCount= 0;
 

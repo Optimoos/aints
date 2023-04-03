@@ -1,5 +1,8 @@
+#include <future>
+
 #include "aints_types.h"
 #include "raylib.h"
+#include "BS_thread_pool.hpp"
 
 #define RAYGUI_IMPLEMENTATION
 // #define RAYGUI_CUSTOM_ICONS     // It requires providing gui_icons.h in the
@@ -12,6 +15,7 @@
 
 #include "aints.h"
 #include "raygui.h"
+
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -27,13 +31,18 @@ int main()
 
   auto world= std::make_shared<World>();
 
+
   entt::registry registry;
+
+  BS::thread_pool ant_pool;
+
+
 
   bool paused{false};
   // FIXME: This should default false before release
   bool debug{true};
 
-  for (int i= 0; i < 10; i++)
+  for (int i= 0; i < 1; i++)
   {
     auto entity= registry.create();
     auto *ant1= new aints(world);
@@ -142,7 +151,7 @@ int main()
       {
         PosXY pos= PosXY{x_tile, y_tile};
         auto tile= world->GetTile(pos.TilePosToInt());
-        DrawTexture(tile->tile_texture_, x_tile * kTileX, y_tile * kTileY,
+        DrawTexture(*tile->TileTexture(), x_tile * kTileX, y_tile * kTileY,
                     WHITE);
       }
     }

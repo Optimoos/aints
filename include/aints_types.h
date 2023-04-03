@@ -3,19 +3,9 @@
 
 #include <cstdint>
 
-enum BlockTypes
-{
-  kBlockAir,
-  kBlockDirt,
-  kBlockGrass,
-  kBlockFood,
-  kBlockStone,
-  kBlockWater,
-  kBlockSand,
-  kBlockUnderground,
-  kBlockStockpiledFood,
-  kBlockInvalid
-};
+#include "block.h"
+
+
 
 static constexpr uint16_t kWorldX{8192};
 static constexpr uint16_t kWorldY{2048};

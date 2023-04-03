@@ -61,6 +61,9 @@ void MoveNeuron::RandomMovement(PosXY &original_location, PosXY &new_location)
 
 void MoveNeuron::GatherNavigate(Brain &brain, PosXY &next_coord)
 {
+
+  std::vector<std::future<void>> path_futures;
+
   // Make sure we arrived at last coordinate we tried to move to from the path
   ValidateLastMove();
 
@@ -74,8 +77,15 @@ void MoveNeuron::GatherNavigate(Brain &brain, PosXY &next_coord)
     next_coord= *brain.path_to_target.begin();
     DoMovement(next_coord);
   } else {
-    FindPath(brain.current_position, brain.current_destination.position,
-             brain.path_to_target, brain.world);
+//    auto search_future= path_pool.submit(
+//        FindPath, brain.current_position, brain.current_destination.position,
+//        std::ref(brain.path_to_target), brain.world);
+
+    path_futures.push_back(std::async(std::launch::async, FindPath, brain.current_position, brain.current_destination.position,
+            std::ref(brain.path_to_target), brain.world));
+
+//    FindPath(brain.current_position, brain.current_destination.position,
+//             brain.path_to_target, brain.world);
     // FIXME: Need to do something here if A* navigation fails
   }
 }

@@ -1,6 +1,8 @@
 #ifndef AINTS_MOVENEURON_H
 #define AINTS_MOVENEURON_H
 
+#include <future>
+
 #include "neuron.h"
 #include "mapsearchnode.h"
 
