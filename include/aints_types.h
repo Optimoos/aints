@@ -5,7 +5,20 @@
 
 #include "block.h"
 
-
+// FIXME: To be deleted once block class is refactored
+const enum BlockTypes
+{
+  kBlockAir,
+  kBlockDirt,
+  kBlockGrass,
+  kBlockFood,
+  kBlockStone,
+  kBlockWater,
+  kBlockSand,
+  kBlockUnderground,
+  kBlockStockpiledFood,
+  kBlockInvalid
+};
 
 static constexpr uint16_t kWorldX{8192};
 static constexpr uint16_t kWorldY{2048};

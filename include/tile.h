@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <utility>
+#include <array>
 
 #include "raylib.h"
 
@@ -25,35 +27,113 @@ class Tile
   void GenerateTileTexture(bool update= false);
   void NoiseToBlock();
 
-  BlockTypes Block(uint64_t tile_int) { return blocks_.at(tile_int);};
-  std::vector<BlockTypes> *Blocks() { return &blocks_;};
-  void SetBlock(uint64_t tile_int, BlockTypes type) { blocks_.at(tile_int) = type;};
+//  std::vector<BlockTypes> *Blocks() { return &blocks_;};
+//  void SetBlock(uint64_t tile_int, BlockTypes type) { blocks_.at(tile_int) = type;};
 
   std::vector<float> *NoiseData() { return &noise_data_;};
   PosXY *TileLocation() { return &tile_location_;};
-  Image *TilePixels() { return &tile_pixels_;};
-  Texture2D *TileTexture() { return &tile_texture_;};
+  Image *TilePixels() { return tile_pixels_.get();};
+  Texture2D *TileTexture() { return tile_texture_.get();};
 
+  // Tile interface to blocks. Tiles need to be able to get color information
+  // from blocks for rendering. As tiles are primarily a structure for splitting
+  // up rendering tasks, they shouldn't need to modify individual blocks.
 
-  class IBlock
+  using IBlock = std::variant<AirBlock,DirtBlock,UndergroundBlock,StoneBlock>;
+
+  class IBlockGetColor
   {
    public:
-    IBlock();
-    ~IBlock();
-    IBlock(const IBlock &other)= default;
-    IBlock &operator=(const IBlock &other)= default;
-
-   private:
-
+    BlockColor operator()( AirBlock const &a ) const
+    {
+      return a.GetBlockColor();
+    }
+    BlockColor operator()( DirtBlock const& a ) const
+    {
+      return a.GetBlockColor();
+    }
+    BlockColor operator()( StoneBlock const& a ) const
+    {
+      return a.GetBlockColor();
+    }
+    BlockColor operator()( UndergroundBlock const& a ) const
+    {
+      return a.GetBlockColor();
+    }
   };
 
+  class IBlockGetRayColor
+  {
+   public:
+    Color operator()( AirBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( DirtBlock const& a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( StoneBlock const& a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( UndergroundBlock const& a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+  };
+
+  //  BlockTypes BlockAt(uint64_t tile_int) { return blocks_.at(tile_int);};
+
+  class IBlockGetBlockType
+  {
+   public:
+    BlockTypes operator()( AirBlock const &a ) const
+    {
+      return kBlockAir;
+    }
+    BlockTypes operator()( DirtBlock const& a ) const
+    {
+      return kBlockDirt;
+    }
+    BlockTypes operator()( StoneBlock const& a ) const
+    {
+      return kBlockStone;
+    }
+    BlockTypes operator()( UndergroundBlock const& a ) const
+    {
+      return kBlockUnderground;
+    }
+  };
+
+  void IBlockSetBlockType(uint64_t tile_int, BlockTypes block_type)
+  {
+    switch (block_type)
+    {
+      case kBlockAir:
+        blocks_->at(tile_int) = AirBlock{};
+        break;
+      case kBlockDirt:
+        blocks_->at(tile_int) = DirtBlock{};
+        break;
+      case kBlockStone:
+        blocks_->at(tile_int) = StoneBlock{};
+        break;
+      case kBlockUnderground:
+        blocks_->at(tile_int) = UndergroundBlock{};
+        break;
+    }
+  };
+
+  IBlock IBlockAt(uint64_t tile_int) { return blocks_->at(tile_int);};
 
  private:
-  std::vector<BlockTypes> blocks_{kTileX * kTileY, kBlockDirt};
+  //std::vector<BlockTypes> blocks_{kTileX * kTileY, kBlockDirt};
+  std::unique_ptr<std::vector<IBlock>> blocks_;
   std::vector<float> noise_data_{kTileX * kTileY};
   PosXY tile_location_{-1,-1};
-  Image tile_pixels_;
-  Texture2D tile_texture_;
+  std::unique_ptr<Image> tile_pixels_;
+  std::unique_ptr<Texture2D> tile_texture_;
 
 };
 

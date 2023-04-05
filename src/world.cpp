@@ -9,6 +9,19 @@ void GenerateTileNoise(FastNoise::SmartNode<> &noise_generator,
                                     1337);
 }
 
+BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
+{
+  //  std::cout << "GetBlockAtPos: " << blockpos.x << ", " << blockpos.y
+  //            << std::endl;
+  if (blockpos.x < 0 || blockpos.y < 0 || blockpos.x >= kWorldX ||
+      blockpos.y >= kWorldY)
+  {
+    return kBlockInvalid;
+  }
+  auto tile= world->GetTile(blockpos.ToWorldTile());
+  return std::visit(Tile::IBlockGetBlockType{}, tile->IBlockAt(blockpos.ToTileInt()));
+}
+
 BlockTypes World::GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world)
 {
 //  std::cout << "GetBlockAtPos: " << blockpos.x << ", " << blockpos.y
@@ -19,27 +32,14 @@ BlockTypes World::GetBlockAtPos(PosXY &&blockpos, std::shared_ptr<World> world)
     return kBlockInvalid;
   }
   auto tile= world->GetTile(blockpos.ToWorldTile());
-  return tile->Block(blockpos.ToTileInt());
-}
-
-BlockTypes World::GetBlockAtPos(PosXY &blockpos, std::shared_ptr<World> world)
-{
-//  std::cout << "GetBlockAtPos: " << blockpos.x << ", " << blockpos.y
-//            << std::endl;
-  if (blockpos.x < 0 || blockpos.y < 0 || blockpos.x >= kWorldX ||
-      blockpos.y >= kWorldY)
-  {
-    return kBlockInvalid;
-  }
-  auto tile= world->GetTile(blockpos.ToWorldTile());
-  return tile->Block(blockpos.ToTileInt());
+  return std::visit(Tile::IBlockGetBlockType{}, tile->IBlockAt(blockpos.ToTileInt()));
 }
 
 void World::SetBlockAtPos(PosXY const &position, BlockTypes const type)
 {
   const auto tile= GetTile(position.ToWorldTile());
   std::lock_guard<std::mutex> lock(world_mutex);
-  tile->SetBlock(position.ToTileInt(), type);
+  tile->IBlockSetBlockType(position.ToTileInt(), type);
   tile->GenerateTilePixels();
   tile->GenerateTileTexture(true);
 }
@@ -178,13 +178,13 @@ World::World(bool debug)
 
       if (debug)
       {
-        if (x_tile_count % 2 == 0)
-        {
-          for (auto &block : *new_tile.Blocks())
-          {
-            block= kBlockAir;
-          }
-        }
+//        if (x_tile_count % 2 == 0)
+//        {
+//          for (auto &block : *new_tile.blocks_)
+//          {
+//            block= kBlockAir;
+//          }
+//        }
       }
       new_tile.NoiseData()->clear();
       new_tile.NoiseData()->resize(kTileX * kTileY);

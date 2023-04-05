@@ -7,8 +7,10 @@ Tile::Tile()
   //  GREEN)); Texture2D img_texture= LoadTextureFromImage(*tile_pixels);
   // tile_texture_= std::make_shared<Texture2D>(img_texture);
 
-  tile_pixels_= GenImageColor(kTileX, kTileY, GREEN);
-  tile_texture_= LoadTextureFromImage(tile_pixels_);
+  tile_pixels_= std::make_unique<Image>(GenImageColor(kTileX, kTileY, GREEN));
+  tile_texture_= std::make_unique<Texture2D>(LoadTextureFromImage(*tile_pixels_));
+  blocks_= std::make_unique<std::vector<IBlock>>();
+  blocks_->resize(kTileX * kTileY);
 
   //std::cout << "Tile created" << std::endl;
 
@@ -19,7 +21,7 @@ Tile::Tile()
 
 Tile::~Tile()
 {
-  UnloadImage(tile_pixels_);
+  UnloadImage(*tile_pixels_);
   //std::cout << "Tile destroyed" << std::endl;
 }
 
@@ -30,15 +32,15 @@ void Tile::NoiseToBlock()
   {
     if ((block > 0.0f) && (block <= 0.1f))
     {
-      this->blocks_.at(location_counter)= kBlockStone;
+      blocks_->emplace_back(StoneBlock{});
     }
     else if ((block > 0.1f) && (block <= 0.5f))
     {
-      this->blocks_.at(location_counter)= kBlockDirt;
+      blocks_->emplace_back(DirtBlock{});
     }
     else if ((block > 0.5f) && (block <= 1.0f))
     {
-      this->blocks_.at(location_counter)= kBlockUnderground;
+      blocks_->emplace_back(UndergroundBlock{});
     }
     location_counter++;
   }
@@ -50,7 +52,7 @@ void Tile::GenerateTilePixels(Color color)
   {
     for (uint16_t x_position= 0; x_position < kTileX; x_position++)
     {
-      ImageDrawPixel(&tile_pixels_, x_position, y_position, color);
+      ImageDrawPixel(tile_pixels_.get(), x_position, y_position, color);
     }
   }
 }
@@ -61,56 +63,64 @@ void Tile::GenerateTilePixels()
   {
     for (uint16_t x_position= 0; x_position < kTileX; x_position++)
     {
-      switch (blocks_.at(PosXY{x_position, y_position}.XYTo16Bit()))
-      {
-        case kBlockAir:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, SKYBLUE);
-          break;
-        case kBlockDirt:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, BROWN);
-          break;
-        case kBlockGrass:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, GREEN);
-          break;
-        case kBlockFood:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
-          break;
-        case kBlockStone:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKGRAY);
-          break;
-        case kBlockWater:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, BLUE);
-          break;
-        case kBlockSand:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, YELLOW);
-          break;
-        case kBlockUnderground:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKBROWN);
-          break;
-        case kBlockStockpiledFood:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
-          break;
-        default:
-          ImageDrawPixel(&tile_pixels_, x_position, y_position, PURPLE);
-          break;
-      }
+
+      ImageDrawPixel(tile_pixels_.get(), x_position, y_position, std::visit(IBlockGetRayColor{}, blocks_->at(PosXY{x_position, y_position}.XYTo16Bit())));
+
+//      switch (blocks_.at(PosXY{x_position, y_position}.XYTo16Bit()))
+//      {
+//        case kBlockAir:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, SKYBLUE);
+//          break;
+//        case kBlockDirt:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, BROWN);
+//          break;
+//        case kBlockGrass:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, GREEN);
+//          break;
+//        case kBlockFood:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
+//          break;
+//        case kBlockStone:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKGRAY);
+//          break;
+//        case kBlockWater:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, BLUE);
+//          break;
+//        case kBlockSand:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, YELLOW);
+//          break;
+//        case kBlockUnderground:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKBROWN);
+//          break;
+//        case kBlockStockpiledFood:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
+//          break;
+//        default:
+//          ImageDrawPixel(&tile_pixels_, x_position, y_position, PURPLE);
+//          break;
+//      }
     }
   }
 }
 
 void Tile::GenerateTileTexture(bool update)
 {
+
   if (!update)
   {
-    tile_texture_= LoadTextureFromImage(tile_pixels_);
+    *tile_texture_= LoadTextureFromImage(*tile_pixels_);
   }
   else
   {
-    UpdateTexture(tile_texture_, tile_pixels_.data);
+    UpdateTexture(*tile_texture_, tile_pixels_->data);
   }
 }
 
-Tile::IBlock::IBlock()
-{
 
-}
+
+//Block<> Tile::IBlock::CreateAirBlock()
+//{
+//  AirBlock airblock{};
+//  auto strategy = []( AirBlock const& c ){ /*...*/ };
+//  return { airblock, strategy };
+//}
