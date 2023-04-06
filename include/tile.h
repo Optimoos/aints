@@ -43,19 +43,7 @@ class Tile
   class IBlockGetColor
   {
    public:
-    BlockColor operator()( AirBlock const &a ) const
-    {
-      return a.GetBlockColor();
-    }
-    BlockColor operator()( DirtBlock const& a ) const
-    {
-      return a.GetBlockColor();
-    }
-    BlockColor operator()( StoneBlock const& a ) const
-    {
-      return a.GetBlockColor();
-    }
-    BlockColor operator()( UndergroundBlock const& a ) const
+    BlockColor operator()( auto const &a ) const
     {
       return a.GetBlockColor();
     }
@@ -64,47 +52,10 @@ class Tile
   class IBlockGetRayColor
   {
    public:
-    Color operator()( AirBlock const &a ) const
+    Color operator()(auto const &a)
     {
       return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
-    Color operator()( DirtBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( StoneBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( UndergroundBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( GrassBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( FoodBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( WaterBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( SandBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( StockpiledFoodBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-    Color operator()( InvalidBlock const &a ) const
-    {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
-    }
-
   };
 
   class IBlockGetBlockType
