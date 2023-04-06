@@ -27,9 +27,6 @@ class Tile
   void GenerateTileTexture(bool update= false);
   void NoiseToBlock();
 
-//  std::vector<BlockTypes> *Blocks() { return &blocks_;};
-//  void SetBlock(uint64_t tile_int, BlockTypes type) { blocks_.at(tile_int) = type;};
-
   std::vector<float> *NoiseData() { return &noise_data_;};
   PosXY *TileLocation() { return &tile_location_;};
   Image *TilePixels() { return tile_pixels_.get();};
@@ -69,21 +66,19 @@ class Tile
     {
       return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
-    Color operator()( DirtBlock const& a ) const
+    Color operator()( DirtBlock const& d ) const
     {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+      return Color{d.GetBlockColor().r, d.GetBlockColor().g, d.GetBlockColor().b, d.GetBlockColor().a};
     }
-    Color operator()( StoneBlock const& a ) const
+    Color operator()( StoneBlock const& s ) const
     {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+      return Color{s.GetBlockColor().r, s.GetBlockColor().g, s.GetBlockColor().b, s.GetBlockColor().a};
     }
-    Color operator()( UndergroundBlock const& a ) const
+    Color operator()( UndergroundBlock const& u ) const
     {
-      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+      return Color{u.GetBlockColor().r, u.GetBlockColor().g, u.GetBlockColor().b, u.GetBlockColor().a};
     }
   };
-
-  //  BlockTypes BlockAt(uint64_t tile_int) { return blocks_.at(tile_int);};
 
   class IBlockGetBlockType
   {
@@ -128,7 +123,6 @@ class Tile
   IBlock IBlockAt(uint64_t tile_int) { return blocks_->at(tile_int);};
 
  private:
-  //std::vector<BlockTypes> blocks_{kTileX * kTileY, kBlockDirt};
   std::unique_ptr<std::vector<IBlock>> blocks_;
   std::vector<float> noise_data_{kTileX * kTileY};
   PosXY tile_location_{-1,-1};

@@ -3,20 +3,14 @@
 
 Tile::Tile()
 {
-  //  tile_pixels= std::make_shared<Image>(GenImageColor(kTileX, kTileY,
-  //  GREEN)); Texture2D img_texture= LoadTextureFromImage(*tile_pixels);
-  // tile_texture_= std::make_shared<Texture2D>(img_texture);
-
   tile_pixels_= std::make_unique<Image>(GenImageColor(kTileX, kTileY, GREEN));
   tile_texture_= std::make_unique<Texture2D>(LoadTextureFromImage(*tile_pixels_));
   blocks_= std::make_unique<std::vector<IBlock>>();
-  blocks_->resize(kTileX * kTileY);
+  // Don't resize the vector as we use emplace_back to add blocks
+  blocks_->reserve(kTileX * kTileY);
 
   //std::cout << "Tile created" << std::endl;
 
-  // tile_pixels = std::make_shared<Image>(GenImageColor(World::Tile::kTileX,
-  // World::Tile::kTileY, GREEN)); tile_texture_ =
-  // std::make_shared<Texture2D>(LoadTextureFromImage(*tile_pixels));
 }
 
 Tile::~Tile()
@@ -28,7 +22,7 @@ Tile::~Tile()
 void Tile::NoiseToBlock()
 {
   uint32_t location_counter= 0;
-  for (float &block : this->noise_data_)
+  for (float &block : noise_data_)
   {
     if ((block > 0.0f) && (block <= 0.1f))
     {
@@ -63,42 +57,7 @@ void Tile::GenerateTilePixels()
   {
     for (uint16_t x_position= 0; x_position < kTileX; x_position++)
     {
-
       ImageDrawPixel(tile_pixels_.get(), x_position, y_position, std::visit(IBlockGetRayColor{}, blocks_->at(PosXY{x_position, y_position}.XYTo16Bit())));
-
-//      switch (blocks_.at(PosXY{x_position, y_position}.XYTo16Bit()))
-//      {
-//        case kBlockAir:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, SKYBLUE);
-//          break;
-//        case kBlockDirt:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, BROWN);
-//          break;
-//        case kBlockGrass:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, GREEN);
-//          break;
-//        case kBlockFood:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
-//          break;
-//        case kBlockStone:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKGRAY);
-//          break;
-//        case kBlockWater:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, BLUE);
-//          break;
-//        case kBlockSand:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, YELLOW);
-//          break;
-//        case kBlockUnderground:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, DARKBROWN);
-//          break;
-//        case kBlockStockpiledFood:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, RED);
-//          break;
-//        default:
-//          ImageDrawPixel(&tile_pixels_, x_position, y_position, PURPLE);
-//          break;
-//      }
     }
   }
 }

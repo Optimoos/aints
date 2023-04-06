@@ -58,8 +58,8 @@ class AirBlock
 
   }
 
-  [[nodiscard]] double attribute() const { return attribute_; }
-  [[nodiscard]] BlockColor GetBlockColor() const { return color_; }
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
 
  private:
   double attribute_;
@@ -107,8 +107,8 @@ class DirtBlock
 
   }
 
-  [[nodiscard]] double attribute() const { return attribute_; }
-  [[nodiscard]] BlockColor GetBlockColor() const { return color_; }
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
 
  private:
   double attribute_;
@@ -156,8 +156,8 @@ class StoneBlock
 
   }
 
-  [[nodiscard]] double attribute() const { return attribute_; }
-  [[nodiscard]] BlockColor GetBlockColor() const { return color_; }
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
 
  private:
   double attribute_;
@@ -205,8 +205,8 @@ class UndergroundBlock
 
   }
 
-  [[nodiscard]] double attribute() const { return attribute_; }
-  [[nodiscard]] BlockColor GetBlockColor() const { return color_; }
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
 
  private:
   double attribute_;
@@ -214,8 +214,6 @@ class UndergroundBlock
 };
 
 using Block = std::variant<AirBlock, DirtBlock, StoneBlock, UndergroundBlock>;
-
-using Blocks = std::vector<Block>;
 
 class GetColor
 {
