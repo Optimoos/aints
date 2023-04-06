@@ -213,52 +213,321 @@ class UndergroundBlock
   const BlockColor color_{76, 63, 47, 255};
 };
 
-using Block = std::variant<AirBlock, DirtBlock, StoneBlock, UndergroundBlock>;
-
-class GetColor
+class GrassBlock
 {
  public:
-  void operator()( AirBlock const& b ) const
-  {
-    return b.GetBlockColor();
+  explicit GrassBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  GrassBlock(const GrassBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  GrassBlock& operator=(const GrassBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
   }
-  void operator()( DirtBlock const& b ) const
-  {
-    return b.GetBlockColor();
+
+  // Move constructor
+  GrassBlock(GrassBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
   }
-  void operator()( StoneBlock const& b ) const
-  {
-    return b.GetBlockColor();
+
+  // Move assignment operator
+  GrassBlock& operator=(GrassBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
   }
-  void operator()( UndergroundBlock const& b ) const
-  {
-    return b.GetBlockColor();
+
+  // Destructor
+  ~GrassBlock() {
+
   }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{0, 228, 48, 255};
 };
 
-//void GetAllBlockColors( Blocks const& blocks )
+class FoodBlock
+{
+ public:
+  explicit FoodBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  FoodBlock(const FoodBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  FoodBlock& operator=(const FoodBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
+  }
+
+  // Move constructor
+  FoodBlock(FoodBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
+  }
+
+  // Move assignment operator
+  FoodBlock& operator=(FoodBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
+  }
+
+  // Destructor
+  ~FoodBlock() {
+
+  }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{0, 117, 44, 255};
+};
+
+class WaterBlock
+{
+ public:
+  explicit WaterBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  WaterBlock(const WaterBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  WaterBlock& operator=(const WaterBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
+  }
+
+  // Move constructor
+  WaterBlock(WaterBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
+  }
+
+  // Move assignment operator
+  WaterBlock& operator=(WaterBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
+  }
+
+  // Destructor
+  ~WaterBlock() {
+
+  }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{0, 121, 241, 255};
+};
+
+class SandBlock
+{
+ public:
+  explicit SandBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  SandBlock(const SandBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  SandBlock& operator=(const SandBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
+  }
+
+  // Move constructor
+  SandBlock(SandBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
+  }
+
+  // Move assignment operator
+  SandBlock& operator=(SandBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
+  }
+
+  // Destructor
+  ~SandBlock() {
+
+  }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{211, 176, 131, 255};
+};
+
+class StockpiledFoodBlock
+{
+ public:
+  explicit StockpiledFoodBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  StockpiledFoodBlock(const StockpiledFoodBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  StockpiledFoodBlock& operator=(const StockpiledFoodBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
+  }
+
+  // Move constructor
+  StockpiledFoodBlock(StockpiledFoodBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
+  }
+
+  // Move assignment operator
+  StockpiledFoodBlock& operator=(StockpiledFoodBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
+  }
+
+  // Destructor
+  ~StockpiledFoodBlock() {
+
+  }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{0, 117, 44, 255};
+};
+
+class InvalidBlock
+{
+ public:
+  explicit InvalidBlock( double attribute = 0.0)
+      : attribute_( attribute )
+  {}
+
+  // Copy constructor
+  InvalidBlock(const InvalidBlock& other)
+      : attribute_(other.attribute_) {}
+
+  // Copy assignment operator
+  InvalidBlock& operator=(const InvalidBlock& other) {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    return *this;
+  }
+
+  // Move constructor
+  InvalidBlock(InvalidBlock&& other) noexcept
+      : attribute_(other.attribute_) {
+    other.attribute_ = 0.0;
+  }
+
+  // Move assignment operator
+  InvalidBlock& operator=(InvalidBlock&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    attribute_ = other.attribute_;
+    other.attribute_ = 0.0;
+    return *this;
+  }
+
+  // Destructor
+  ~InvalidBlock() {
+
+  }
+
+  double attribute() const { return attribute_; }
+  BlockColor GetBlockColor() const { return color_; }
+
+ private:
+  double attribute_;
+  const BlockColor color_{255, 0, 255, 255};
+};
+
+using Block = std::variant<AirBlock, DirtBlock, StoneBlock, UndergroundBlock, GrassBlock, FoodBlock, WaterBlock, SandBlock, StockpiledFoodBlock, InvalidBlock>;
+
+//class GetColor
 //{
-//  for( auto const& block : blocks )
+// public:
+//  void operator()( AirBlock const& b ) const
 //  {
-//    std::visit( GetColor{}, block );
+//    return b.GetBlockColor();
 //  }
-//}
-
-//class Block
-//{
-// public:
-//  class IEntity;
-// private:
-//
+//  void operator()( DirtBlock const& b ) const
+//  {
+//    return b.GetBlockColor();
+//  }
+//  void operator()( StoneBlock const& b ) const
+//  {
+//    return b.GetBlockColor();
+//  }
+//  void operator()( UndergroundBlock const& b ) const
+//  {
+//    return b.GetBlockColor();
+//  }
 //};
-
-// Interface for entities interacting with blocks
-//class Block::IEntity
-//{
-// public:
-// private:
-//
-//};
-
 
 #endif  // AIANTS_BLOCK_H

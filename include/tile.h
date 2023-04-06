@@ -36,7 +36,9 @@ class Tile
   // from blocks for rendering. As tiles are primarily a structure for splitting
   // up rendering tasks, they shouldn't need to modify individual blocks.
 
-  using IBlock = std::variant<AirBlock,DirtBlock,UndergroundBlock,StoneBlock>;
+
+  // Variants - AirBlock, DirtBlock, StoneBlock, UndergroundBlock, GrassBlock, FoodBlock, WaterBlock, SandBlock, StockpiledFoodBlock, InvalidBlock
+  using IBlock = Block;
 
   class IBlockGetColor
   {
@@ -66,18 +68,43 @@ class Tile
     {
       return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
-    Color operator()( DirtBlock const& d ) const
+    Color operator()( DirtBlock const &a ) const
     {
-      return Color{d.GetBlockColor().r, d.GetBlockColor().g, d.GetBlockColor().b, d.GetBlockColor().a};
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
-    Color operator()( StoneBlock const& s ) const
+    Color operator()( StoneBlock const &a ) const
     {
-      return Color{s.GetBlockColor().r, s.GetBlockColor().g, s.GetBlockColor().b, s.GetBlockColor().a};
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
-    Color operator()( UndergroundBlock const& u ) const
+    Color operator()( UndergroundBlock const &a ) const
     {
-      return Color{u.GetBlockColor().r, u.GetBlockColor().g, u.GetBlockColor().b, u.GetBlockColor().a};
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
     }
+    Color operator()( GrassBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( FoodBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( WaterBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( SandBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( StockpiledFoodBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+    Color operator()( InvalidBlock const &a ) const
+    {
+      return Color{a.GetBlockColor().r, a.GetBlockColor().g, a.GetBlockColor().b, a.GetBlockColor().a};
+    }
+
   };
 
   class IBlockGetBlockType
@@ -99,6 +126,31 @@ class Tile
     {
       return kBlockUnderground;
     }
+    BlockTypes operator()( GrassBlock const& a ) const
+    {
+      return kBlockGrass;
+    }
+    BlockTypes operator()( FoodBlock const& a ) const
+    {
+      return kBlockFood;
+    }
+    BlockTypes operator()( WaterBlock const& a ) const
+    {
+      return kBlockWater;
+    }
+    BlockTypes operator()( SandBlock const& a ) const
+    {
+      return kBlockSand;
+    }
+    BlockTypes operator()( StockpiledFoodBlock const& a ) const
+    {
+      return kBlockStockpiledFood;
+    }
+    BlockTypes operator()( InvalidBlock const& a ) const
+    {
+      return kBlockInvalid;
+    }
+
   };
 
   void IBlockSetBlockType(uint64_t tile_int, BlockTypes block_type)
@@ -117,6 +169,25 @@ class Tile
       case kBlockUnderground:
         blocks_->at(tile_int) = UndergroundBlock{};
         break;
+      case kBlockGrass:
+        blocks_->at(tile_int) = GrassBlock{};
+        break;
+      case kBlockFood:
+        blocks_->at(tile_int) = FoodBlock{};
+        break;
+      case kBlockWater:
+        blocks_->at(tile_int) = WaterBlock{};
+        break;
+      case kBlockSand:
+        blocks_->at(tile_int) = SandBlock{};
+        break;
+      case kBlockStockpiledFood:
+        blocks_->at(tile_int) = StockpiledFoodBlock{};
+        break;
+      case kBlockInvalid:
+        blocks_->at(tile_int) = InvalidBlock{};
+        break;
+
     }
   };
 
